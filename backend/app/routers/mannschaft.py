@@ -67,16 +67,19 @@ def _compute_siege(mk: Mannschaftskampf, db: Session) -> tuple[int, int]:
     return siege_heim, siege_gast
 
 
-def _mk_to_response(mk: Mannschaftskampf, db: Session) -> MannschaftskampfResponse:
+def _get_siege(mk: Mannschaftskampf, db: Session) -> tuple[int, int, str]:
+    """Gibt (siege_heim, siege_gast, modus) zurueck.
+    Modus 'berechnet' wenn Einzelkaempfe vorhanden, sonst 'direkt'."""
     if mk.einzelkaempfe:
-        siege_heim, siege_gast = _compute_siege(mk, db)
-        modus = "berechnet"
-    elif mk.siege_heim_direkt is not None and mk.siege_gast_direkt is not None:
-        siege_heim, siege_gast = mk.siege_heim_direkt, mk.siege_gast_direkt
-        modus = "direkt"
-    else:
-        siege_heim, siege_gast = 0, 0
-        modus = "direkt"
+        s_heim, s_gast = _compute_siege(mk, db)
+        return s_heim, s_gast, "berechnet"
+    if mk.siege_heim_direkt is not None and mk.siege_gast_direkt is not None:
+        return mk.siege_heim_direkt, mk.siege_gast_direkt, "direkt"
+    return 0, 0, "direkt"
+
+
+def _mk_to_response(mk: Mannschaftskampf, db: Session) -> MannschaftskampfResponse:
+    siege_heim, siege_gast, modus = _get_siege(mk, db)
     mk.siege_heim = siege_heim
     mk.siege_gast = siege_gast
     mk.ergebnis_modus = modus
@@ -234,7 +237,7 @@ def get_ligatabelle(liga_id: int, db: Session = Depends(get_db), _: User = Depen
     for mk in mannschaftskaempfe:
         ensure(mk.verein_heim)
         ensure(mk.verein_gast)
-        siege_heim, siege_gast = _compute_siege(mk, db)
+        siege_heim, siege_gast, _ = _get_siege(mk, db)
 
         tabelle[mk.verein_heim_id]["spiele"] += 1
         tabelle[mk.verein_gast_id]["spiele"] += 1
