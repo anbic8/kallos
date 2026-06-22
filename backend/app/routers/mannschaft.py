@@ -11,6 +11,7 @@ from ..schemas import (
     MannschaftskampfCreate, MannschaftskampfResponse,
     EinzelkampfCreate, EinzelkampfResponse,
     LigaTabelle, LigaTabelleneintrag,
+    VeranstaltungResponse,
 )
 from ..deps import get_current_user, require_trainer
 
@@ -233,8 +234,8 @@ def get_ligatabelle(liga_id: int, db: Session = Depends(get_db), _: User = Depen
 
 # ---------- Kampftage einer Liga ----------
 
-@router.get("/api/veranstaltungen/{liga_id}/kampftage", response_model=list[dict])
+@router.get("/api/veranstaltungen/{liga_id}/kampftage", response_model=list[VeranstaltungResponse])
 def get_kampftage(liga_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return db.query(Veranstaltung).filter(
         Veranstaltung.parent_liga_id == liga_id
-    ).order_by(Veranstaltung.datum).all()
+    ).order_by(Veranstaltung.datum.nullslast(), Veranstaltung.id).all()
