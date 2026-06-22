@@ -21,9 +21,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col">
       {/* Top-Navbar */}
       <header className="bg-blue-800 text-white shadow-md">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-bold text-lg tracking-wide">JudoApp</span>
-          <div className="flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-6">
+          <span className="font-bold text-lg tracking-wide flex-shrink-0">JudoApp</span>
+
+          {/* Desktop-Nav */}
+          <nav className="hidden sm:flex items-center gap-1 flex-1">
+            {NAV.map(({ to, label, icon }) => {
+              const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to))
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    active ? 'bg-blue-700 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'
+                  }`}
+                >
+                  <span>{icon}</span>
+                  {label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="flex items-center gap-3 ml-auto">
             <span className="text-sm text-blue-200 hidden sm:block">{user?.email}</span>
             <button onClick={handleLogout} className="text-sm text-blue-200 hover:text-white transition-colors">
               Abmelden
