@@ -2,6 +2,7 @@ import axios from 'axios'
 import type {
   Kaempfer, TokenResponse, User, Verein, Gewichtsklasse, Technik,
   Veranstaltung, Kampf, KampfEreignis, KaempferStatistik, KampfMedien, Erfolg,
+  Mannschaftskampf, Einzelkampf, LigaTabelle,
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -180,6 +181,46 @@ export const createKampfEreignis = async (kampfId: number, payload: object): Pro
 
 export const deleteKampfEreignis = async (kampfId: number, ereignisId: number): Promise<void> => {
   await api.delete(`/kaempfe/${kampfId}/ereignisse/${ereignisId}`)
+}
+
+// ---------- Mannschaft ----------
+
+export const fetchMannschaftskaempfe = async (veranstaltungId: number): Promise<Mannschaftskampf[]> => {
+  const { data } = await api.get<Mannschaftskampf[]>('/mannschaftskaempfe', { params: { veranstaltung_id: veranstaltungId } })
+  return data
+}
+
+export const fetchMannschaftskampfById = async (id: number): Promise<Mannschaftskampf> => {
+  const { data } = await api.get<Mannschaftskampf>(`/mannschaftskaempfe/${id}`)
+  return data
+}
+
+export const createMannschaftskampf = async (payload: object): Promise<Mannschaftskampf> => {
+  const { data } = await api.post<Mannschaftskampf>('/mannschaftskaempfe', payload)
+  return data
+}
+
+export const deleteMannschaftskampf = async (id: number): Promise<void> => {
+  await api.delete(`/mannschaftskaempfe/${id}`)
+}
+
+export const addEinzelkampf = async (mkId: number, payload: object): Promise<Einzelkampf> => {
+  const { data } = await api.post<Einzelkampf>(`/mannschaftskaempfe/${mkId}/einzelkaempfe`, payload)
+  return data
+}
+
+export const deleteEinzelkampf = async (mkId: number, ekId: number): Promise<void> => {
+  await api.delete(`/mannschaftskaempfe/${mkId}/einzelkaempfe/${ekId}`)
+}
+
+export const fetchLigaTabelle = async (ligaId: number): Promise<LigaTabelle> => {
+  const { data } = await api.get<LigaTabelle>(`/veranstaltungen/${ligaId}/ligatabelle`)
+  return data
+}
+
+export const fetchKampftage = async (ligaId: number): Promise<Veranstaltung[]> => {
+  const { data } = await api.get<Veranstaltung[]>(`/veranstaltungen/${ligaId}/kampftage`)
+  return data
 }
 
 // ---------- Medien ----------

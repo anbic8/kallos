@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from .models import (
     UserRolle, Guertel, Geschlecht, GKGeschlecht, Altersklasse, TechnikKategorie,
     VeranstaltungsTyp, KampfRunde, Sieger, Abschluss, EreignisTyp, KaempferFarbe,
-    MedienTyp, ErfolgKategorie,
+    MedienTyp, ErfolgKategorie, KampflosSeite,
 )
 
 
@@ -329,6 +329,59 @@ class ErfolgResponse(BaseModel):
     veranstaltung: Optional[VeranstaltungKurzResponse] = None
     gewichtsklasse: Optional[GewichtsklasseKurzResponse] = None
     model_config = {"from_attributes": True}
+
+
+# ---------- Mannschaftskaempfe ----------
+
+class EinzelkampfCreate(BaseModel):
+    gewichtsklasse_id: Optional[int] = None
+    kampf_id: Optional[int] = None
+    kampflos_sieger: Optional[KampflosSeite] = None
+
+
+class EinzelkampfResponse(BaseModel):
+    id: int
+    mannschaftskampf_id: int
+    gewichtsklasse_id: Optional[int] = None
+    kampf_id: Optional[int] = None
+    kampflos_sieger: Optional[KampflosSeite] = None
+    gewichtsklasse: Optional[GewichtsklasseKurzResponse] = None
+    kampf: Optional[KampfResponse] = None
+    model_config = {"from_attributes": True}
+
+
+class MannschaftskampfCreate(BaseModel):
+    veranstaltung_id: int
+    verein_heim_id: int
+    verein_gast_id: int
+
+
+class MannschaftskampfResponse(BaseModel):
+    id: int
+    veranstaltung_id: int
+    verein_heim_id: int
+    verein_gast_id: int
+    siege_heim: int = 0
+    siege_gast: int = 0
+    verein_heim: Optional[VereinResponse] = None
+    verein_gast: Optional[VereinResponse] = None
+    einzelkaempfe: list[EinzelkampfResponse] = []
+    model_config = {"from_attributes": True}
+
+
+class LigaTabelleneintrag(BaseModel):
+    verein_id: int
+    verein_name: str
+    spiele: int
+    siege: int
+    niederlagen: int
+    unentschieden: int
+    punkte: int
+
+
+class LigaTabelle(BaseModel):
+    liga_id: int
+    eintraege: list[LigaTabelleneintrag]
 
 
 # ---------- Statistik ----------

@@ -1,5 +1,5 @@
 import { useEffect, useState, FormEvent } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchVeranstaltungById, createVeranstaltung, updateVeranstaltung } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
 import type { VeranstaltungsTyp } from '../../api/types'
@@ -9,6 +9,9 @@ const TYPEN: VeranstaltungsTyp[] = ['turnier', 'meisterschaft', 'pokal', 'liga',
 
 export default function VeranstaltungFormPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const ligaId = searchParams.get('liga_id')
+  const typParam = searchParams.get('typ') as VeranstaltungsTyp | null
   const isEdit = Boolean(id)
   const navigate = useNavigate()
   const { isTrainer } = useAuthStore()
@@ -18,7 +21,7 @@ export default function VeranstaltungFormPage() {
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '',
-    typ: 'turnier' as VeranstaltungsTyp,
+    typ: (typParam ?? 'turnier') as VeranstaltungsTyp,
     datum: '',
     ort: '',
     veranstalter: '',
@@ -55,6 +58,7 @@ export default function VeranstaltungFormPage() {
       ort: form.ort || undefined,
       veranstalter: form.veranstalter || undefined,
       notizen: form.notizen || undefined,
+      parent_liga_id: ligaId ? Number(ligaId) : undefined,
     }
     try {
       if (isEdit && id) {
@@ -62,7 +66,8 @@ export default function VeranstaltungFormPage() {
         navigate(`/veranstaltungen/${id}`)
       } else {
         const v = await createVeranstaltung(payload as any)
-        navigate(`/veranstaltungen/${v.id}`)
+        if (ligaId) navigate(`/veranstaltungen/${ligaId}`)
+        else navigate(`/veranstaltungen/${v.id}`)
       }
     } catch (err: any) {
       setError(err.response?.data?.detail ?? 'Speichern fehlgeschlagen')

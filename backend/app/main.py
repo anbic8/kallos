@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .config import settings
-from .routers import auth, kaempfer, vereine, stammdaten, veranstaltungen, kaempfe, medien, erfolge
+from .routers import auth, kaempfer, vereine, stammdaten, veranstaltungen, kaempfe, medien, erfolge, mannschaft
 
 app = FastAPI(title="JudoApp API", version="1.0.0")
 
@@ -23,6 +23,7 @@ app.include_router(veranstaltungen.router)
 app.include_router(kaempfe.router)
 app.include_router(medien.router)
 app.include_router(erfolge.router)
+app.include_router(mannschaft.router)
 
 os.makedirs(settings.media_dir, exist_ok=True)
 app.mount("/media", StaticFiles(directory=settings.media_dir), name="media")

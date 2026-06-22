@@ -107,6 +107,11 @@ class KaempferFarbe(str, enum.Enum):
     blau = "blau"
 
 
+class KampflosSeite(str, enum.Enum):
+    heim = "heim"
+    gast = "gast"
+
+
 class MedienTyp(str, enum.Enum):
     foto = "foto"
     video = "video"
@@ -254,6 +259,40 @@ class Erfolg(Base):
     kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
     veranstaltung: Mapped["Veranstaltung"] = relationship("Veranstaltung")
     gewichtsklasse: Mapped[Optional["Gewichtsklasse"]] = relationship("Gewichtsklasse")
+
+
+class Mannschaftskampf(Base):
+    __tablename__ = "mannschaftskaempfe"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    veranstaltung_id: Mapped[int] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=False)
+    verein_heim_id: Mapped[int] = mapped_column(ForeignKey("vereine.id"), nullable=False)
+    verein_gast_id: Mapped[int] = mapped_column(ForeignKey("vereine.id"), nullable=False)
+
+    veranstaltung: Mapped["Veranstaltung"] = relationship("Veranstaltung")
+    verein_heim: Mapped["Verein"] = relationship("Verein", foreign_keys="[Mannschaftskampf.verein_heim_id]")
+    verein_gast: Mapped["Verein"] = relationship("Verein", foreign_keys="[Mannschaftskampf.verein_gast_id]")
+    einzelkaempfe: Mapped[list["MannschaftskampfEinzelkampf"]] = relationship(
+        "MannschaftskampfEinzelkampf", back_populates="mannschaftskampf",
+        order_by="MannschaftskampfEinzelkampf.id", cascade="all, delete-orphan"
+    )
+
+
+class MannschaftskampfEinzelkampf(Base):
+    __tablename__ = "mannschaftskampf_einzelkaempfe"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mannschaftskampf_id: Mapped[int] = mapped_column(ForeignKey("mannschaftskaempfe.id"), nullable=False)
+    gewichtsklasse_id: Mapped[Optional[int]] = mapped_column(ForeignKey("gewichtsklassen.id"), nullable=True)
+    kampf_id: Mapped[Optional[int]] = mapped_column(ForeignKey("kaempfe.id"), nullable=True)
+    kampflos_sieger: Mapped[Optional[KampflosSeite]] = mapped_column(SAEnum(KampflosSeite), nullable=True)
+
+    mannschaftskampf: Mapped["Mannschaftskampf"] = relationship("Mannschaftskampf", back_populates="einzelkaempfe")
+    gewichtsklasse: Mapped[Optional["Gewichtsklasse"]] = relationship("Gewichtsklasse")
+    kampf: Mapped[Optional["Kampf"]] = relationship(
+        "Kampf",
+        primaryjoin="MannschaftskampfEinzelkampf.kampf_id == Kampf.id",
+    )
 
 
 class KampfEreignis(Base):

@@ -137,6 +137,45 @@ export interface Erfolg {
   gewichtsklasse?: { id: number; bezeichnung: string }
 }
 
+export type KampflosSeite = 'heim' | 'gast'
+
+export interface Einzelkampf {
+  id: number
+  mannschaftskampf_id: number
+  gewichtsklasse_id?: number
+  kampf_id?: number
+  kampflos_sieger?: KampflosSeite
+  gewichtsklasse?: { id: number; bezeichnung: string }
+  kampf?: Kampf
+}
+
+export interface Mannschaftskampf {
+  id: number
+  veranstaltung_id: number
+  verein_heim_id: number
+  verein_gast_id: number
+  siege_heim: number
+  siege_gast: number
+  verein_heim?: Verein
+  verein_gast?: Verein
+  einzelkaempfe: Einzelkampf[]
+}
+
+export interface LigaTabelleneintrag {
+  verein_id: number
+  verein_name: string
+  spiele: number
+  siege: number
+  niederlagen: number
+  unentschieden: number
+  punkte: number
+}
+
+export interface LigaTabelle {
+  liga_id: number
+  eintraege: LigaTabelleneintrag[]
+}
+
 export interface KaempferStatistik {
   kaempfer_id: number
   total: number
