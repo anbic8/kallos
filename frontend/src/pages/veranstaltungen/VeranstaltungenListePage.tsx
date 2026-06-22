@@ -51,7 +51,7 @@ export default function VeranstaltungenListePage() {
       )}
 
       <div className="space-y-2">
-        {veranstaltungen.map((v) => (
+        {veranstaltungen.filter((v) => !v.parent_liga_id).map((v) => (
           <Link key={v.id} to={`/veranstaltungen/${v.id}`} className="card flex items-center gap-3 hover:border-blue-300 transition-colors block">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">

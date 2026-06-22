@@ -163,19 +163,33 @@ export default function MannschaftskampfDetailPage() {
               </select>
             </div>
             {modus === 'kampf' ? (
-              <div>
+              <div className="space-y-2">
                 <label className="label">Kampf *</label>
-                <select className="input" value={form.kampf_id} onChange={(e) => setForm(f => ({ ...f, kampf_id: e.target.value }))} required>
-                  <option value="">-- Kampf wählen --</option>
-                  {verfuegbareKaempfe.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.kaempfer_weiss ? `${k.kaempfer_weiss.vorname} ${k.kaempfer_weiss.nachname}` : '?'}
-                      {' vs. '}
-                      {k.kaempfer_blau ? `${k.kaempfer_blau.vorname} ${k.kaempfer_blau.nachname}` : '?'}
-                      {k.gewichtsklasse ? ` (${k.gewichtsklasse.bezeichnung})` : ''}
-                    </option>
-                  ))}
-                </select>
+                {verfuegbareKaempfe.length === 0 ? (
+                  <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    Noch keine Kämpfe für diesen Kampftag vorhanden.{' '}
+                    <Link to={`/veranstaltungen/${mk?.veranstaltung_id}/kaempfe/neu`} className="text-blue-600 hover:underline font-medium">
+                      Kampf anlegen →
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <select className="input" value={form.kampf_id} onChange={(e) => setForm(f => ({ ...f, kampf_id: e.target.value }))} required>
+                      <option value="">-- Kampf wählen --</option>
+                      {verfuegbareKaempfe.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          {k.kaempfer_weiss ? `${k.kaempfer_weiss.vorname} ${k.kaempfer_weiss.nachname}` : '?'}
+                          {' vs. '}
+                          {k.kaempfer_blau ? `${k.kaempfer_blau.vorname} ${k.kaempfer_blau.nachname}` : '?'}
+                          {k.gewichtsklasse ? ` (${k.gewichtsklasse.bezeichnung})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <Link to={`/veranstaltungen/${mk?.veranstaltung_id}/kaempfe/neu`} className="text-xs text-blue-600 hover:underline">
+                      + Neuen Kampf anlegen
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <div>

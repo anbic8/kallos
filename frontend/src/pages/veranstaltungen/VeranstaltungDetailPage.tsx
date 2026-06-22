@@ -7,6 +7,7 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import type { Veranstaltung, Kampf, Mannschaftskampf, LigaTabelle } from '../../api/types'
 import { VERANSTALTUNGSTYP_LABEL, ABSCHLUSS_LABEL, KAMPFRUNDE_LABEL, formatKampfzeit } from '../../api/types'
+// fetchKaempfe, deleteKampf bleiben fuer StandardSection (Turniere etc.)
 
 function SiegerBadge({ sieger }: { sieger: string }) {
   if (sieger === 'weiss') return <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 font-medium">Sieg ⬜</span>
@@ -100,11 +101,9 @@ function LigaSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
 function KampftagSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
   const { isTrainer } = useAuthStore()
   const [mannschaftskaempfe, setMannschaftskaempfe] = useState<Mannschaftskampf[]>([])
-  const [kaempfe, setKaempfe] = useState<Kampf[]>([])
 
   const reload = () => {
     fetchMannschaftskaempfe(veranstaltung.id).then(setMannschaftskaempfe).catch(() => {})
-    fetchKaempfe({ veranstaltung_id: veranstaltung.id }).then(setKaempfe).catch(() => {})
   }
 
   useEffect(reload, [veranstaltung.id])
@@ -133,6 +132,14 @@ function KampftagSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
             </Link>
           )}
         </div>
+
+        {mannschaftskaempfe.length === 0 && (
+          <div className="card text-center py-8 text-gray-400 text-sm">
+            <p className="text-2xl mb-2">🤼</p>
+            <p>Noch keine Mannschaftskämpfe angelegt.</p>
+          </div>
+        )}
+
         <div className="space-y-2">
           {mannschaftskaempfe.map((mk) => (
             <div key={mk.id} className="card flex items-center gap-3">
@@ -140,11 +147,11 @@ function KampftagSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium">{mk.verein_heim?.name ?? `Verein #${mk.verein_heim_id}`}</span>
                   <span className={`text-lg font-bold px-2 ${mk.siege_heim > mk.siege_gast ? 'text-green-600' : mk.siege_gast > mk.siege_heim ? 'text-red-500' : 'text-yellow-600'}`}>
-                    {mk.siege_heim}:{mk.siege_gast}
+                    {mk.siege_heim} : {mk.siege_gast}
                   </span>
                   <span className="font-medium">{mk.verein_gast?.name ?? `Verein #${mk.verein_gast_id}`}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">{mk.einzelkaempfe.length} Gewichtsklassen</p>
+                <p className="text-xs text-gray-400 mt-0.5">{mk.einzelkaempfe.length} Gewichtsklassen erfasst</p>
               </Link>
               {isTrainer() && (
                 <button onClick={() => handleDeleteMK(mk)} className="text-red-400 hover:text-red-600 text-sm">✕</button>
@@ -154,41 +161,11 @@ function KampftagSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
         </div>
       </div>
 
-      {/* Einzelkämpfe */}
-      {kaempfe.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-semibold text-gray-700">Einzelkämpfe ({kaempfe.length})</h2>
-            {isTrainer() && (
-              <Link to={`/veranstaltungen/${veranstaltung.id}/kaempfe/neu`} className="btn-secondary text-sm">+ Kampf</Link>
-            )}
-          </div>
-          <div className="space-y-2">
-            {kaempfe.map((k) => (
-              <Link key={k.id} to={`/kaempfe/${k.id}`} className="card flex items-center gap-2 hover:border-blue-300 transition-colors block">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1 flex-wrap text-sm">
-                    <span className="font-medium">{k.kaempfer_weiss ? `${k.kaempfer_weiss.vorname} ${k.kaempfer_weiss.nachname}` : '?'}</span>
-                    <span className="text-gray-400">vs.</span>
-                    <span className="font-medium">{k.kaempfer_blau ? `${k.kaempfer_blau.vorname} ${k.kaempfer_blau.nachname}` : '?'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <SiegerBadge sieger={k.sieger} />
-                    <span className="text-xs text-gray-500">{ABSCHLUSS_LABEL[k.abschluss]}</span>
-                    {k.gewichtsklasse && <span className="text-xs text-gray-400">{k.gewichtsklasse.bezeichnung}</span>}
-                  </div>
-                </div>
-                <span className="text-gray-400">›</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isTrainer() && kaempfe.length === 0 && mannschaftskaempfe.length === 0 && (
-        <Link to={`/veranstaltungen/${veranstaltung.id}/kaempfe/neu`} className="btn-secondary w-full text-center block">
-          + Einzelkampf erfassen
-        </Link>
+      {/* Hinweis: Kämpfe werden im Mannschaftskampf angelegt */}
+      {mannschaftskaempfe.length > 0 && isTrainer() && (
+        <p className="text-xs text-gray-400 text-center">
+          Einzelkämpfe werden direkt im Mannschaftskampf erfasst und zugewiesen.
+        </p>
       )}
     </div>
   )
