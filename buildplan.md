@@ -284,24 +284,24 @@ Spaetere Korrelation moeglich: hoehe Griffkraft-Werte -> bessere Ippon-Rate?
 
 ---
 
-## Phase 1 -- Fundament & Auth
+## Phase 1 -- Fundament & Auth ✓ ABGESCHLOSSEN
 
 **Ziel:** App laeuft in Docker, Login funktioniert, Stammdaten pflegbar.
 
 ### Aufgaben
-- [ ] Docker Compose Setup: PostgreSQL, FastAPI, React/Nginx
-- [ ] Datenbankschema anlegen (Migrations mit Alembic)
-- [ ] Tabellen: `users`, `vereine`, `kaempfer`, `gewichtsklassen`, `techniken` (mit Gokyo-Seed)
-- [ ] Auth-Endpoints: Register, Login, JWT-Token, Rollen
-- [ ] Frontend: Login-Screen, Navigation, Dashboard-Skeleton
-- [ ] Kaempfer-Profil: anlegen, bearbeiten, Guertelgrad setzen, Profilfoto hochladen
-- [ ] Vereins-Kaempfer-Uebersicht (nur interne Kaempfer mit verein_id = unser Verein)
+- [x] Docker Compose Setup: PostgreSQL, FastAPI, React/Nginx
+- [x] Datenbankschema anlegen (Migrations mit Alembic)
+- [x] Tabellen: `users`, `vereine`, `kaempfer`, `gewichtsklassen`, `techniken` (mit Gokyo-Seed)
+- [x] Auth-Endpoints: Register, Login, JWT-Token, Rollen
+- [x] Frontend: Login-Screen, Navigation, Dashboard-Skeleton
+- [x] Kaempfer-Profil: anlegen, bearbeiten, Guertelgrad setzen, Profilfoto hochladen
+- [x] Vereins-Kaempfer-Uebersicht (nur interne Kaempfer mit verein_id = unser Verein)
 
 ### Verifikation
-- [ ] Du und dein Sohn koennt euch einloggen (eigene Accounts, eigene Profile)
-- [ ] Kaempfer-Profile mit aktuellem Guertelgrad und Foto angelegt
-- [ ] Trainer-Account sieht alle internen Kaempfer, Athlet-Account nur das eigene Profil
-- [ ] App erreichbar und bedienbar im Handy-Browser
+- [x] Du und dein Sohn koennt euch einloggen (eigene Accounts, eigene Profile)
+- [x] Kaempfer-Profile mit aktuellem Guertelgrad und Foto angelegt
+- [x] Trainer-Account sieht alle internen Kaempfer, Athlet-Account nur das eigene Profil
+- [x] App erreichbar und bedienbar im Handy-Browser
 
 ---
 
