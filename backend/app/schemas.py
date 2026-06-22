@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from .models import (
     UserRolle, Guertel, Geschlecht, GKGeschlecht, Altersklasse, TechnikKategorie,
     VeranstaltungsTyp, KampfRunde, Sieger, Abschluss, EreignisTyp, KaempferFarbe,
-    MedienTyp, ErfolgKategorie, KampflosSeite,
+    MedienTyp, ErfolgKategorie, KampflosSeite, IKKZRichtung, IKKZSituation,
 )
 
 
@@ -384,6 +384,80 @@ class LigaTabelle(BaseModel):
     eintraege: list[LigaTabelleneintrag]
 
 
+# ---------- IKKZ ----------
+
+class IKKZCreate(BaseModel):
+    technik_id: Optional[int] = None
+    technik_frei: Optional[str] = None
+    richtung: IKKZRichtung
+    situation: IKKZSituation
+    prioritaet: int = 1
+    notizen: Optional[str] = None
+    datum: Optional[date] = None
+
+
+class IKKZUpdate(BaseModel):
+    technik_id: Optional[int] = None
+    technik_frei: Optional[str] = None
+    richtung: Optional[IKKZRichtung] = None
+    situation: Optional[IKKZSituation] = None
+    prioritaet: Optional[int] = None
+    notizen: Optional[str] = None
+
+
+class IKKZResponse(BaseModel):
+    id: int
+    kaempfer_id: int
+    technik_id: Optional[int] = None
+    technik_frei: Optional[str] = None
+    richtung: IKKZRichtung
+    situation: IKKZSituation
+    prioritaet: int
+    notizen: Optional[str] = None
+    datum: Optional[date] = None
+    technik: Optional[TechnikKurzResponse] = None
+    model_config = {"from_attributes": True}
+
+
+# ---------- Leistungstest ----------
+
+class LeistungstestCreate(BaseModel):
+    datum: date
+    testtyp: str
+    messwert_zahl: Optional[float] = None
+    messwert_text: Optional[str] = None
+    einheit: Optional[str] = None
+    notizen: Optional[str] = None
+
+
+class LeistungstestResponse(BaseModel):
+    id: int
+    kaempfer_id: int
+    datum: date
+    testtyp: str
+    messwert_zahl: Optional[float] = None
+    messwert_text: Optional[str] = None
+    einheit: Optional[str] = None
+    notizen: Optional[str] = None
+    model_config = {"from_attributes": True}
+
+
+# ---------- Kampfstruktur ----------
+
+class ScoringZeitpunkt(BaseModel):
+    frueh: int = 0
+    mitte: int = 0
+    spaet: int = 0
+    golden_score: int = 0
+
+
+class KampfstrukturAnalyse(BaseModel):
+    scoring: ScoringZeitpunkt
+    shido_erhalten: int
+    golden_score_siege: int
+    golden_score_niederlagen: int
+
+
 # ---------- Statistik ----------
 
 class TechnikStatistik(BaseModel):
@@ -405,3 +479,4 @@ class KaempferStatistik(BaseModel):
     techniken: list[TechnikStatistik]
     abschluesse_siege: list[AbschlussStatistik]
     abschluesse_niederlagen: list[AbschlussStatistik]
+    kampfstruktur: KampfstrukturAnalyse

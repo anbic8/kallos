@@ -2,7 +2,7 @@ import axios from 'axios'
 import type {
   Kaempfer, TokenResponse, User, Verein, Gewichtsklasse, Technik,
   Veranstaltung, Kampf, KampfEreignis, KaempferStatistik, KampfMedien, Erfolg,
-  Mannschaftskampf, Einzelkampf, LigaTabelle,
+  Mannschaftskampf, Einzelkampf, LigaTabelle, IKKZEintrag, Leistungstest,
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -181,6 +181,40 @@ export const createKampfEreignis = async (kampfId: number, payload: object): Pro
 
 export const deleteKampfEreignis = async (kampfId: number, ereignisId: number): Promise<void> => {
   await api.delete(`/kaempfe/${kampfId}/ereignisse/${ereignisId}`)
+}
+
+// ---------- IKKZ ----------
+
+export const fetchIKKZ = async (kaempferId: number): Promise<IKKZEintrag[]> => {
+  const { data } = await api.get<IKKZEintrag[]>('/ikkz', { params: { kaempfer_id: kaempferId } })
+  return data
+}
+
+export const createIKKZ = async (kaempferId: number, payload: object): Promise<IKKZEintrag> => {
+  const { data } = await api.post<IKKZEintrag>('/ikkz', payload, { params: { kaempfer_id: kaempferId } })
+  return data
+}
+
+export const deleteIKKZ = async (id: number): Promise<void> => {
+  await api.delete(`/ikkz/${id}`)
+}
+
+// ---------- Leistungstests ----------
+
+export const fetchLeistungstests = async (kaempferId: number, testtyp?: string): Promise<Leistungstest[]> => {
+  const { data } = await api.get<Leistungstest[]>('/leistungstests', {
+    params: { kaempfer_id: kaempferId, ...(testtyp ? { testtyp } : {}) }
+  })
+  return data
+}
+
+export const createLeistungstest = async (kaempferId: number, payload: object): Promise<Leistungstest> => {
+  const { data } = await api.post<Leistungstest>('/leistungstests', payload, { params: { kaempfer_id: kaempferId } })
+  return data
+}
+
+export const deleteLeistungstest = async (id: number): Promise<void> => {
+  await api.delete(`/leistungstests/${id}`)
 }
 
 // ---------- Mannschaft ----------

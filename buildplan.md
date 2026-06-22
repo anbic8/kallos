@@ -342,7 +342,8 @@ Spaetere Korrelation moeglich: hoehe Griffkraft-Werte -> bessere Ippon-Rate?
 - [ ] Alternativ: externe URL / NAS-Pfad hinterlegen
 - [ ] Medien-Galerie pro Kampf (Fotos + Video-Player)
 - [ ] Video-Player mit klickbaren Timestamp-Markierungen (Coaching-Kommentare)
-  - Optional: Timestamp aus Kampf-Ereignis direkt im Video anspringen
+  - Timeline -> Video: benoetigt kampf_start_sek auf kampf_medien
+    (zeitpunkt_sek im Kampf != Position im Video -- eigener Offset-Wert noetig, Phase 6)
 - [ ] Erfolge eintragen: Platz, Veranstaltung, Gewichtsklasse, Siegerehrungsfoto
 - [ ] Erfolgs-Uebersicht pro Kaempfer (Pokale-Seite)
 

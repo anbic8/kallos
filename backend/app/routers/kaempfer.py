@@ -5,8 +5,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
-from ..models import User, Kaempfer, UserRolle, Kampf, Sieger
-from ..schemas import KaempferCreate, KaempferUpdate, KaempferResponse, KaempferStatistik, TechnikStatistik, AbschlussStatistik
+from ..models import User, Kaempfer, UserRolle, Kampf, Sieger, KampfEreignis, EreignisTyp
+from ..schemas import KaempferCreate, KaempferUpdate, KaempferResponse, KaempferStatistik, TechnikStatistik, AbschlussStatistik, KampfstrukturAnalyse, ScoringZeitpunkt
 from ..deps import get_current_user, require_trainer
 from ..config import settings
 
@@ -145,6 +145,7 @@ def get_statistik(
 
     kaempfe = (
         db.query(Kampf)
+        .options(joinedload(Kampf.ereignisse))
         .filter((Kampf.kaempfer_weiss_id == kaempfer_id) | (Kampf.kaempfer_blau_id == kaempfer_id))
         .all()
     )
@@ -153,6 +154,8 @@ def get_statistik(
     technik_counter: Counter = Counter()
     abschluss_siege_counter: Counter = Counter()
     abschluss_niederlagen_counter: Counter = Counter()
+    scoring_frueh = scoring_mitte = scoring_spaet = scoring_gs = 0
+    shido_erhalten = gs_siege = gs_niederlagen = 0
 
     for k in kaempfe:
         hat_gewonnen = (
@@ -180,6 +183,32 @@ def get_statistik(
             niederlagen += 1
             abschluss_niederlagen_counter[k.abschluss.value] += 1
 
+        # Kampfstruktur aus Ereignissen
+        kaempfer_farbe = "weiss" if k.kaempfer_weiss_id == kaempfer_id else "blau"
+        hat_gs = False
+        for e in k.ereignisse:
+            if e.typ == EreignisTyp.golden_score:
+                hat_gs = True
+            if e.farbe.value != kaempfer_farbe:
+                if e.typ in (EreignisTyp.shido, EreignisTyp.hansoku_make):
+                    shido_erhalten += 1
+                continue
+            if e.typ in (EreignisTyp.ippon, EreignisTyp.waza_ari, EreignisTyp.yuko):
+                t = e.zeitpunkt_sek
+                if t is None:
+                    pass
+                elif t <= 60:
+                    scoring_frueh += 1
+                elif t <= 120:
+                    scoring_mitte += 1
+                else:
+                    scoring_spaet += 1
+        if hat_gs:
+            if hat_gewonnen:
+                gs_siege += 1
+            elif not ist_unentschieden:
+                gs_niederlagen += 1
+
     return KaempferStatistik(
         kaempfer_id=kaempfer_id,
         total=len(kaempfe),
@@ -189,4 +218,10 @@ def get_statistik(
         techniken=[TechnikStatistik(name=n, anzahl=c) for n, c in technik_counter.most_common(10)],
         abschluesse_siege=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_siege_counter.most_common()],
         abschluesse_niederlagen=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_niederlagen_counter.most_common()],
+        kampfstruktur=KampfstrukturAnalyse(
+            scoring=ScoringZeitpunkt(frueh=scoring_frueh, mitte=scoring_mitte, spaet=scoring_spaet, golden_score=scoring_gs),
+            shido_erhalten=shido_erhalten,
+            golden_score_siege=gs_siege,
+            golden_score_niederlagen=gs_niederlagen,
+        ),
     )

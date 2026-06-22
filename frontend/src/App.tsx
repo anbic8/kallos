@@ -18,6 +18,8 @@ import StatistikPage from './pages/statistik/StatistikPage'
 import ErfolgePage from './pages/erfolge/ErfolgePage'
 import MannschaftskampfDetailPage from './pages/mannschaft/MannschaftskampfDetailPage'
 import MannschaftskampfFormPage from './pages/mannschaft/MannschaftskampfFormPage'
+import IKKZPage from './pages/ikkz/IKKZPage'
+import LeistungstestPage from './pages/leistungstests/LeistungstestPage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -53,6 +55,8 @@ export default function App() {
                   <Route path="/kaempfe/:id" element={<KampfDetailPage />} />
                   <Route path="/veranstaltungen/:veranstaltungId/mannschaft/neu" element={<MannschaftskampfFormPage />} />
                   <Route path="/mannschaftskaempfe/:id" element={<MannschaftskampfDetailPage />} />
+                  <Route path="/kaempfer/:id/ikkz" element={<IKKZPage />} />
+                  <Route path="/kaempfer/:id/leistungstests" element={<LeistungstestPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

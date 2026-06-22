@@ -145,6 +145,49 @@ export default function StatistikPage() {
         </>
       )}
 
+      {/* Kampfstruktur */}
+          {statistik.total > 0 && (
+            <div className="card space-y-3">
+              <h2 className="font-semibold text-gray-700">Kampfstruktur</h2>
+              {(() => {
+                const s = statistik.kampfstruktur.scoring
+                const total = s.frueh + s.mitte + s.spaet + s.golden_score
+                return total > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500 mb-1">Wann erziele ich Wertungen?</p>
+                    {[
+                      { label: '0–60s (früh)', value: s.frueh, color: 'bg-green-500' },
+                      { label: '61–120s (mitte)', value: s.mitte, color: 'bg-yellow-500' },
+                      { label: '> 120s (spät)', value: s.spaet, color: 'bg-orange-500' },
+                      { label: 'Golden Score', value: s.golden_score, color: 'bg-purple-500' },
+                    ].map((row) => (
+                      <div key={row.label}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{row.label}</span>
+                        </div>
+                        <StatBar value={row.value} max={total} color={row.color} />
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-sm text-gray-400">Keine Timeline-Daten vorhanden.</p>
+              })()}
+              <div className="grid grid-cols-3 gap-2 pt-1 text-center text-sm border-t border-gray-100">
+                <div>
+                  <p className="font-bold text-orange-600">{statistik.kampfstruktur.shido_erhalten}</p>
+                  <p className="text-xs text-gray-500">Shidos erhalten</p>
+                </div>
+                <div>
+                  <p className="font-bold text-green-600">{statistik.kampfstruktur.golden_score_siege}</p>
+                  <p className="text-xs text-gray-500">GS-Siege</p>
+                </div>
+                <div>
+                  <p className="font-bold text-red-500">{statistik.kampfstruktur.golden_score_niederlagen}</p>
+                  <p className="text-xs text-gray-500">GS-Niederlagen</p>
+                </div>
+              </div>
+            </div>
+          )}
+
       {/* Letzte Kämpfe */}
       {kaempfe.length > 0 && (
         <div className="card space-y-3">

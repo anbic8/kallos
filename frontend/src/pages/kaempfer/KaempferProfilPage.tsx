@@ -123,7 +123,7 @@ export default function KaempferProfilPage() {
         )}
       </div>
 
-      {/* Statistiken & Erfolge */}
+      {/* Statistiken, Erfolge, IKKZ, Tests */}
       <div className="grid grid-cols-2 gap-3">
         <Link to={`/kaempfer/${kaempfer.id}/statistik`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
           <span className="text-3xl">📊</span>
@@ -135,6 +135,20 @@ export default function KaempferProfilPage() {
           <p className="font-semibold text-sm">Erfolge</p>
           <p className="text-xs text-gray-500">Pokale, Platzierungen</p>
         </Link>
+        {kannBearbeiten && (
+          <Link to={`/kaempfer/${kaempfer.id}/ikkz`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
+            <span className="text-3xl">🎯</span>
+            <p className="font-semibold text-sm">IKKZ</p>
+            <p className="text-xs text-gray-500">Kampfkonzept</p>
+          </Link>
+        )}
+        {kannBearbeiten && (
+          <Link to={`/kaempfer/${kaempfer.id}/leistungstests`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
+            <span className="text-3xl">📋</span>
+            <p className="font-semibold text-sm">Leistungstests</p>
+            <p className="text-xs text-gray-500">Uchi-komi, Griffkraft</p>
+          </Link>
+        )}
       </div>
 
       {/* Löschen (nur Trainer) */}

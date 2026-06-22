@@ -107,6 +107,20 @@ class KaempferFarbe(str, enum.Enum):
     blau = "blau"
 
 
+class IKKZRichtung(str, enum.Enum):
+    links = "links"
+    rechts = "rechts"
+    beide = "beide"
+
+
+class IKKZSituation(str, enum.Enum):
+    angriff = "angriff"
+    konter = "konter"
+    aufsetzer = "aufsetzer"
+    ne_waza_einstieg = "ne_waza_einstieg"
+    sonstiges = "sonstiges"
+
+
 class KampflosSeite(str, enum.Enum):
     heim = "heim"
     gast = "gast"
@@ -228,6 +242,39 @@ class Kampf(Base):
     medien: Mapped[list["KampfMedien"]] = relationship(
         "KampfMedien", back_populates="kampf", order_by="KampfMedien.id", cascade="all, delete-orphan"
     )
+
+
+class KampfkonzeptEintrag(Base):
+    __tablename__ = "kampfkonzept_eintraege"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kaempfer_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    technik_id: Mapped[Optional[int]] = mapped_column(ForeignKey("techniken.id"), nullable=True)
+    technik_frei: Mapped[Optional[str]] = mapped_column(String(255))
+    richtung: Mapped[IKKZRichtung] = mapped_column(SAEnum(IKKZRichtung), nullable=False)
+    situation: Mapped[IKKZSituation] = mapped_column(SAEnum(IKKZSituation), nullable=False)
+    prioritaet: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    notizen: Mapped[Optional[str]] = mapped_column(Text)
+    erstellt_von: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    datum: Mapped[Optional[date]] = mapped_column(Date)
+
+    kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
+    technik: Mapped[Optional["Technik"]] = relationship("Technik")
+
+
+class Leistungstest(Base):
+    __tablename__ = "leistungstests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kaempfer_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    datum: Mapped[date] = mapped_column(Date, nullable=False)
+    testtyp: Mapped[str] = mapped_column(String(255), nullable=False)
+    messwert_zahl: Mapped[Optional[float]] = mapped_column(Float)
+    messwert_text: Mapped[Optional[str]] = mapped_column(String(255))
+    einheit: Mapped[Optional[str]] = mapped_column(String(50))
+    notizen: Mapped[Optional[str]] = mapped_column(Text)
+
+    kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
 
 
 class KampfMedien(Base):

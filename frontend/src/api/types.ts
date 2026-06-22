@@ -137,6 +137,60 @@ export interface Erfolg {
   gewichtsklasse?: { id: number; bezeichnung: string }
 }
 
+export type IKKZRichtung = 'links' | 'rechts' | 'beide'
+export type IKKZSituation = 'angriff' | 'konter' | 'aufsetzer' | 'ne_waza_einstieg' | 'sonstiges'
+
+export interface IKKZEintrag {
+  id: number
+  kaempfer_id: number
+  technik_id?: number
+  technik_frei?: string
+  richtung: IKKZRichtung
+  situation: IKKZSituation
+  prioritaet: number
+  notizen?: string
+  datum?: string
+  technik?: { id: number; name: string }
+}
+
+export interface Leistungstest {
+  id: number
+  kaempfer_id: number
+  datum: string
+  testtyp: string
+  messwert_zahl?: number
+  messwert_text?: string
+  einheit?: string
+  notizen?: string
+}
+
+export interface KampfstrukturAnalyse {
+  scoring: { frueh: number; mitte: number; spaet: number; golden_score: number }
+  shido_erhalten: number
+  golden_score_siege: number
+  golden_score_niederlagen: number
+}
+
+export const IKKZ_RICHTUNG_LABEL: Record<IKKZRichtung, string> = {
+  links: 'Links',
+  rechts: 'Rechts',
+  beide: 'Beide',
+}
+
+export const IKKZ_SITUATION_LABEL: Record<IKKZSituation, string> = {
+  angriff: 'Angriff',
+  konter: 'Konter',
+  aufsetzer: 'Aufsetzer',
+  ne_waza_einstieg: 'Ne-waza-Einstieg',
+  sonstiges: 'Sonstiges',
+}
+
+export const IKKZ_PRIORITAET_LABEL: Record<number, string> = {
+  1: 'Tokui-waza (Hauptwaffe)',
+  2: 'Kombinationspartner',
+  3: 'Variante',
+}
+
 export type KampflosSeite = 'heim' | 'gast'
 
 export interface Einzelkampf {
@@ -185,6 +239,7 @@ export interface KaempferStatistik {
   techniken: { name: string; anzahl: number }[]
   abschluesse_siege: { typ: string; anzahl: number }[]
   abschluesse_niederlagen: { typ: string; anzahl: number }[]
+  kampfstruktur: KampfstrukturAnalyse
 }
 
 export interface TokenResponse {
