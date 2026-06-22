@@ -15,6 +15,7 @@ import VeranstaltungDetailPage from './pages/veranstaltungen/VeranstaltungDetail
 import KampfFormPage from './pages/kaempfe/KampfFormPage'
 import KampfDetailPage from './pages/kaempfe/KampfDetailPage'
 import StatistikPage from './pages/statistik/StatistikPage'
+import ErfolgePage from './pages/erfolge/ErfolgePage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -41,6 +42,7 @@ export default function App() {
                   <Route path="/kaempfer/:id" element={<KaempferProfilPage />} />
                   <Route path="/kaempfer/:id/bearbeiten" element={<KaempferFormPage />} />
                   <Route path="/kaempfer/:id/statistik" element={<StatistikPage />} />
+                  <Route path="/kaempfer/:id/erfolge" element={<ErfolgePage />} />
                   <Route path="/veranstaltungen" element={<VeranstaltungenListePage />} />
                   <Route path="/veranstaltungen/neu" element={<VeranstaltungFormPage />} />
                   <Route path="/veranstaltungen/:id" element={<VeranstaltungDetailPage />} />

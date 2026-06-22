@@ -123,15 +123,19 @@ export default function KaempferProfilPage() {
         )}
       </div>
 
-      {/* Statistiken */}
-      <Link to={`/kaempfer/${kaempfer.id}/statistik`} className="card flex items-center gap-3 hover:border-blue-300 transition-colors">
-        <span className="text-3xl">📊</span>
-        <div>
-          <p className="font-semibold">Kampfstatistiken</p>
-          <p className="text-sm text-gray-500">Siege, Techniken, Verlauf</p>
-        </div>
-        <span className="ml-auto text-gray-400">›</span>
-      </Link>
+      {/* Statistiken & Erfolge */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link to={`/kaempfer/${kaempfer.id}/statistik`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
+          <span className="text-3xl">📊</span>
+          <p className="font-semibold text-sm">Statistiken</p>
+          <p className="text-xs text-gray-500">Siege, Techniken</p>
+        </Link>
+        <Link to={`/kaempfer/${kaempfer.id}/erfolge`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
+          <span className="text-3xl">🏆</span>
+          <p className="font-semibold text-sm">Erfolge</p>
+          <p className="text-xs text-gray-500">Pokale, Platzierungen</p>
+        </Link>
+      </div>
 
       {/* Löschen (nur Trainer) */}
       {isTrainer() && (

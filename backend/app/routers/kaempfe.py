@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
-from ..models import User, Kampf, KampfEreignis, Kaempfer, UserRolle, Sieger
+from ..models import User, Kampf, KampfEreignis, KampfMedien, Kaempfer, UserRolle, Sieger
 from ..schemas import KampfCreate, KampfUpdate, KampfResponse, KampfEreignisCreate, KampfEreignisResponse
 from ..deps import get_current_user, require_trainer
 
@@ -19,6 +19,7 @@ def _load_kampf(kampf_id: int, db: Session) -> Kampf:
             joinedload(Kampf.gewichtsklasse),
             joinedload(Kampf.sieger_technik),
             joinedload(Kampf.ereignisse).joinedload(KampfEreignis.technik),
+            joinedload(Kampf.medien),
         )
         .filter(Kampf.id == kampf_id)
         .first()
@@ -44,6 +45,7 @@ def list_kaempfe(
             joinedload(Kampf.gewichtsklasse),
             joinedload(Kampf.sieger_technik),
             joinedload(Kampf.ereignisse).joinedload(KampfEreignis.technik),
+            joinedload(Kampf.medien),
         )
     )
     if veranstaltung_id:

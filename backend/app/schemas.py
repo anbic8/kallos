@@ -4,6 +4,7 @@ from pydantic import BaseModel, EmailStr
 from .models import (
     UserRolle, Guertel, Geschlecht, GKGeschlecht, Altersklasse, TechnikKategorie,
     VeranstaltungsTyp, KampfRunde, Sieger, Abschluss, EreignisTyp, KaempferFarbe,
+    MedienTyp, ErfolgKategorie,
 )
 
 
@@ -280,6 +281,53 @@ class KampfResponse(BaseModel):
     gewichtsklasse: Optional[GewichtsklasseKurzResponse] = None
     sieger_technik: Optional[TechnikKurzResponse] = None
     ereignisse: list[KampfEreignisResponse] = []
+    medien: list["KampfMedienResponse"] = []
+    model_config = {"from_attributes": True}
+
+
+# ---------- Medien ----------
+
+class KampfMedienResponse(BaseModel):
+    id: int
+    kampf_id: int
+    typ: MedienTyp
+    datei_pfad: Optional[str] = None
+    externe_url: Optional[str] = None
+    timestamp_sek: Optional[int] = None
+    beschriftung: Optional[str] = None
+    model_config = {"from_attributes": True}
+
+
+# ---------- Erfolge ----------
+
+class ErfolgCreate(BaseModel):
+    kaempfer_id: int
+    veranstaltung_id: int
+    gewichtsklasse_id: Optional[int] = None
+    platz: int
+    kategorie: ErfolgKategorie = ErfolgKategorie.einzel
+    notizen: Optional[str] = None
+
+
+class ErfolgUpdate(BaseModel):
+    veranstaltung_id: Optional[int] = None
+    gewichtsklasse_id: Optional[int] = None
+    platz: Optional[int] = None
+    kategorie: Optional[ErfolgKategorie] = None
+    notizen: Optional[str] = None
+
+
+class ErfolgResponse(BaseModel):
+    id: int
+    kaempfer_id: int
+    veranstaltung_id: int
+    gewichtsklasse_id: Optional[int] = None
+    platz: int
+    kategorie: ErfolgKategorie
+    foto_url: Optional[str] = None
+    notizen: Optional[str] = None
+    veranstaltung: Optional[VeranstaltungKurzResponse] = None
+    gewichtsklasse: Optional[GewichtsklasseKurzResponse] = None
     model_config = {"from_attributes": True}
 
 

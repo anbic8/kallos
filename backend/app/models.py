@@ -107,6 +107,16 @@ class KaempferFarbe(str, enum.Enum):
     blau = "blau"
 
 
+class MedienTyp(str, enum.Enum):
+    foto = "foto"
+    video = "video"
+
+
+class ErfolgKategorie(str, enum.Enum):
+    einzel = "einzel"
+    mannschaft = "mannschaft"
+
+
 # ---------- Models ----------
 
 class User(Base):
@@ -210,6 +220,40 @@ class Kampf(Base):
     ereignisse: Mapped[list["KampfEreignis"]] = relationship(
         "KampfEreignis", back_populates="kampf", order_by="KampfEreignis.zeitpunkt_sek", cascade="all, delete-orphan"
     )
+    medien: Mapped[list["KampfMedien"]] = relationship(
+        "KampfMedien", back_populates="kampf", order_by="KampfMedien.id", cascade="all, delete-orphan"
+    )
+
+
+class KampfMedien(Base):
+    __tablename__ = "kampf_medien"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kampf_id: Mapped[int] = mapped_column(ForeignKey("kaempfe.id"), nullable=False)
+    typ: Mapped[MedienTyp] = mapped_column(SAEnum(MedienTyp), nullable=False)
+    datei_pfad: Mapped[Optional[str]] = mapped_column(String(500))
+    externe_url: Mapped[Optional[str]] = mapped_column(String(1000))
+    timestamp_sek: Mapped[Optional[int]] = mapped_column(Integer)
+    beschriftung: Mapped[Optional[str]] = mapped_column(String(500))
+
+    kampf: Mapped["Kampf"] = relationship("Kampf", back_populates="medien")
+
+
+class Erfolg(Base):
+    __tablename__ = "erfolge"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kaempfer_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    veranstaltung_id: Mapped[int] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=False)
+    gewichtsklasse_id: Mapped[Optional[int]] = mapped_column(ForeignKey("gewichtsklassen.id"), nullable=True)
+    platz: Mapped[int] = mapped_column(Integer, nullable=False)
+    kategorie: Mapped[ErfolgKategorie] = mapped_column(SAEnum(ErfolgKategorie), nullable=False)
+    foto_url: Mapped[Optional[str]] = mapped_column(String(500))
+    notizen: Mapped[Optional[str]] = mapped_column(Text)
+
+    kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
+    veranstaltung: Mapped["Veranstaltung"] = relationship("Veranstaltung")
+    gewichtsklasse: Mapped[Optional["Gewichtsklasse"]] = relationship("Gewichtsklasse")
 
 
 class KampfEreignis(Base):

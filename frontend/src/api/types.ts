@@ -108,6 +108,33 @@ export interface Kampf {
   gewichtsklasse?: { id: number; bezeichnung: string }
   sieger_technik?: { id: number; name: string }
   ereignisse: KampfEreignis[]
+  medien: KampfMedien[]
+}
+
+export type MedienTyp = 'foto' | 'video'
+export type ErfolgKategorie = 'einzel' | 'mannschaft'
+
+export interface KampfMedien {
+  id: number
+  kampf_id: number
+  typ: MedienTyp
+  datei_pfad?: string
+  externe_url?: string
+  timestamp_sek?: number
+  beschriftung?: string
+}
+
+export interface Erfolg {
+  id: number
+  kaempfer_id: number
+  veranstaltung_id: number
+  gewichtsklasse_id?: number
+  platz: number
+  kategorie: ErfolgKategorie
+  foto_url?: string
+  notizen?: string
+  veranstaltung?: Veranstaltung
+  gewichtsklasse?: { id: number; bezeichnung: string }
 }
 
 export interface KaempferStatistik {

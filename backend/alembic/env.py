@@ -2,7 +2,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.database import Base
-from app.models import User, Verein, Kaempfer, Gewichtsklasse, Technik, Veranstaltung, Kampf, KampfEreignis  # noqa: F401
+from app.models import User, Verein, Kaempfer, Gewichtsklasse, Technik, Veranstaltung, Kampf, KampfEreignis, KampfMedien, Erfolg  # noqa: F401
 from app.config import settings
 
 config = context.config

@@ -1,8 +1,8 @@
-import { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useRef, useState, FormEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { fetchKampfById, deleteKampf, createKampfEreignis, deleteKampfEreignis, fetchTechniken } from '../../api/client'
+import { fetchKampfById, deleteKampf, createKampfEreignis, deleteKampfEreignis, fetchTechniken, addKampfMedien, deleteKampfMedien } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
-import type { Kampf, KampfEreignis, Technik, EreignisTyp, KaempferFarbe } from '../../api/types'
+import type { Kampf, KampfEreignis, KampfMedien, Technik, EreignisTyp, KaempferFarbe, MedienTyp } from '../../api/types'
 import { ABSCHLUSS_LABEL, KAMPFRUNDE_LABEL, EREIGNISTYP_LABEL, formatKampfzeit, formatZeitpunkt } from '../../api/types'
 
 function SiegerBadge({ sieger }: { sieger: string }) {
@@ -22,6 +22,19 @@ export default function KampfDetailPage() {
   const [loading, setLoading] = useState(true)
   const [showEreignisForm, setShowEreignisForm] = useState(false)
   const [savingEreignis, setSavingEreignis] = useState(false)
+  const [showMedienForm, setShowMedienForm] = useState(false)
+  const [savingMedien, setSavingMedien] = useState(false)
+  const [medienModus, setMedienModus] = useState<'upload' | 'url'>('upload')
+  const [medienForm, setMedienForm] = useState({ typ: 'foto' as MedienTyp, externe_url: '', timestamp_sek: '', beschriftung: '' })
+  const medienFileRef = useRef<HTMLInputElement>(null)
+  const videoRefs = useRef<Record<number, HTMLVideoElement>>({})
+
+  const seekVideo = (medienId: number, sek: number) => {
+    const v = videoRefs.current[medienId]
+    if (v) { v.currentTime = sek; v.play() }
+  }
+
+  const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be')
   const [ereignisForm, setEreignisForm] = useState({
     zeitpunkt_min: '',
     zeitpunkt_sek: '',
@@ -81,6 +94,40 @@ export default function KampfDetailPage() {
   const handleDeleteEreignis = async (e: KampfEreignis) => {
     if (!kampf) return
     await deleteKampfEreignis(kampf.id, e.id)
+    reload()
+  }
+
+  const handleAddMedien = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!kampf) return
+    setSavingMedien(true)
+    try {
+      const fd = new FormData()
+      fd.append('typ', medienForm.typ)
+      if (medienForm.beschriftung) fd.append('beschriftung', medienForm.beschriftung)
+      if (medienForm.timestamp_sek) fd.append('timestamp_sek', medienForm.timestamp_sek)
+      if (medienModus === 'url') {
+        fd.append('externe_url', medienForm.externe_url)
+      } else {
+        const file = medienFileRef.current?.files?.[0]
+        if (!file) { setSavingMedien(false); return }
+        fd.append('datei', file)
+      }
+      await addKampfMedien(kampf.id, fd)
+      setShowMedienForm(false)
+      setMedienForm({ typ: 'foto', externe_url: '', timestamp_sek: '', beschriftung: '' })
+      if (medienFileRef.current) medienFileRef.current.value = ''
+      reload()
+    } catch (err: any) {
+      alert(err.response?.data?.detail ?? 'Fehler beim Hinzufügen')
+    } finally {
+      setSavingMedien(false)
+    }
+  }
+
+  const handleDeleteMedien = async (m: KampfMedien) => {
+    if (!kampf || !confirm('Dieses Medium wirklich löschen?')) return
+    await deleteKampfMedien(kampf.id, m.id)
     reload()
   }
 
@@ -244,6 +291,124 @@ export default function KampfDetailPage() {
         </div>
       </div>
 
+      {/* Medien */}
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-gray-700">Medien ({kampf.medien.length})</h2>
+          {isTrainer() && (
+            <button onClick={() => setShowMedienForm(!showMedienForm)} className="btn-secondary text-sm">
+              {showMedienForm ? 'Abbrechen' : '+ Medium'}
+            </button>
+          )}
+        </div>
+
+        {showMedienForm && (
+          <form onSubmit={handleAddMedien} className="bg-gray-50 rounded-lg p-3 space-y-3 border border-gray-200">
+            <div className="flex gap-2">
+              {(['upload', 'url'] as const).map((m) => (
+                <button key={m} type="button" onClick={() => setMedienModus(m)}
+                  className={`flex-1 py-1.5 rounded-lg text-sm border transition-colors ${medienModus === m ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200'}`}>
+                  {m === 'upload' ? '📁 Datei hochladen' : '🔗 Externe URL'}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Typ</label>
+                <select className="input" value={medienForm.typ} onChange={(e) => setMedienForm(f => ({ ...f, typ: e.target.value as MedienTyp }))}>
+                  <option value="foto">📷 Foto</option>
+                  <option value="video">🎥 Video</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Zeitstempel (Coaching)</label>
+                <input className="input" type="number" placeholder="Sekunden" value={medienForm.timestamp_sek}
+                  onChange={(e) => setMedienForm(f => ({ ...f, timestamp_sek: e.target.value }))} />
+              </div>
+            </div>
+            {medienModus === 'upload' ? (
+              <div>
+                <label className="label">Datei</label>
+                <input ref={medienFileRef} type="file" accept="image/*,video/*" className="input" />
+              </div>
+            ) : (
+              <div>
+                <label className="label">URL (NAS-Pfad, YouTube etc.)</label>
+                <input className="input" placeholder="https://..." value={medienForm.externe_url}
+                  onChange={(e) => setMedienForm(f => ({ ...f, externe_url: e.target.value }))} />
+              </div>
+            )}
+            <div>
+              <label className="label">Beschriftung</label>
+              <input className="input" value={medienForm.beschriftung}
+                onChange={(e) => setMedienForm(f => ({ ...f, beschriftung: e.target.value }))} />
+            </div>
+            <button type="submit" className="btn-primary w-full" disabled={savingMedien}>
+              {savingMedien ? 'Speichern...' : 'Hinzufügen'}
+            </button>
+          </form>
+        )}
+
+        {kampf.medien.length === 0 && !showMedienForm && (
+          <p className="text-sm text-gray-400 text-center py-4">Keine Medien vorhanden.</p>
+        )}
+
+        <div className="space-y-4">
+          {kampf.medien.map((m) => (
+            <div key={m.id} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  {m.typ === 'foto' ? '📷' : '🎥'} {m.beschriftung || (m.typ === 'foto' ? 'Foto' : 'Video')}
+                  {m.timestamp_sek != null && <span className="text-gray-400 ml-1">· {formatZeitpunkt(m.timestamp_sek)}</span>}
+                </span>
+                {isTrainer() && (
+                  <button onClick={() => handleDeleteMedien(m)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                )}
+              </div>
+
+              {/* Foto */}
+              {m.typ === 'foto' && (m.datei_pfad || m.externe_url) && (
+                <a href={m.datei_pfad ?? m.externe_url} target="_blank" rel="noopener noreferrer">
+                  <img src={m.datei_pfad ?? m.externe_url} alt={m.beschriftung ?? ''} className="rounded-lg max-h-64 object-cover w-full" />
+                </a>
+              )}
+
+              {/* Video: hochgeladen */}
+              {m.typ === 'video' && m.datei_pfad && (
+                <video
+                  ref={(el) => { if (el) videoRefs.current[m.id] = el }}
+                  src={m.datei_pfad} controls className="w-full rounded-lg max-h-64"
+                />
+              )}
+
+              {/* Video: YouTube */}
+              {m.typ === 'video' && m.externe_url && isYoutube(m.externe_url) && (
+                <div className="aspect-video">
+                  <iframe
+                    src={m.externe_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/') + (m.timestamp_sek ? `?start=${m.timestamp_sek}` : '')}
+                    className="w-full h-full rounded-lg" allowFullScreen
+                  />
+                </div>
+              )}
+
+              {/* Video: andere externe URL */}
+              {m.typ === 'video' && m.externe_url && !isYoutube(m.externe_url) && (
+                <a href={m.externe_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                  🔗 Video öffnen
+                </a>
+              )}
+
+              {/* Timestamp-Sprung für hochgeladene Videos */}
+              {m.typ === 'video' && m.datei_pfad && m.timestamp_sek != null && (
+                <button onClick={() => seekVideo(m.id, m.timestamp_sek!)} className="btn-secondary text-xs">
+                  ▶ Springe zu {formatZeitpunkt(m.timestamp_sek)}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {isTrainer() && (
         <button onClick={handleDeleteKampf} className="btn-danger w-full">
           Kampf löschen
@@ -252,3 +417,4 @@ export default function KampfDetailPage() {
     </div>
   )
 }
+
