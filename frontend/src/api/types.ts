@@ -144,7 +144,8 @@ export interface KaempferStatistik {
   niederlagen: number
   unentschieden: number
   techniken: { name: string; anzahl: number }[]
-  abschluesse: { typ: string; anzahl: number }[]
+  abschluesse_siege: { typ: string; anzahl: number }[]
+  abschluesse_niederlagen: { typ: string; anzahl: number }[]
 }
 
 export interface TokenResponse {

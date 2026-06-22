@@ -31,7 +31,14 @@ export default function KampfDetailPage() {
 
   const seekVideo = (medienId: number, sek: number) => {
     const v = videoRefs.current[medienId]
-    if (v) { v.currentTime = sek; v.play() }
+    if (!v) return
+    const doSeek = () => { v.currentTime = sek; v.play().catch(() => {}) }
+    if (v.readyState >= 1) {
+      doSeek()
+    } else {
+      v.addEventListener('loadedmetadata', doSeek, { once: true })
+      v.load()
+    }
   }
 
   const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be')

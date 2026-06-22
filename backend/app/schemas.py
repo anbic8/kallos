@@ -350,4 +350,5 @@ class KaempferStatistik(BaseModel):
     niederlagen: int
     unentschieden: int
     techniken: list[TechnikStatistik]
-    abschluesse: list[AbschlussStatistik]
+    abschluesse_siege: list[AbschlussStatistik]
+    abschluesse_niederlagen: list[AbschlussStatistik]

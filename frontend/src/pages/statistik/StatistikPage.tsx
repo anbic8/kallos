@@ -109,17 +109,34 @@ export default function StatistikPage() {
             </div>
           )}
 
-          {/* Abschluss-Verteilung */}
-          {statistik.abschluesse.length > 0 && (
+          {/* Abschluss-Verteilung Siege */}
+          {statistik.abschluesse_siege.length > 0 && (
             <div className="card space-y-3">
-              <h2 className="font-semibold text-gray-700">Abschluss-Verteilung</h2>
+              <h2 className="font-semibold text-gray-700">Wie ich gewinne</h2>
               <div className="space-y-2">
-                {statistik.abschluesse.map((a) => (
+                {statistik.abschluesse_siege.map((a) => (
                   <div key={a.typ}>
                     <div className="flex justify-between text-sm mb-1">
                       <span>{ABSCHLUSS_LABEL[a.typ as keyof typeof ABSCHLUSS_LABEL] ?? a.typ}</span>
                     </div>
-                    <StatBar value={a.anzahl} max={statistik.abschluesse[0].anzahl} color="bg-purple-500" />
+                    <StatBar value={a.anzahl} max={statistik.abschluesse_siege[0].anzahl} color="bg-green-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Abschluss-Verteilung Niederlagen */}
+          {statistik.abschluesse_niederlagen.length > 0 && (
+            <div className="card space-y-3">
+              <h2 className="font-semibold text-gray-700">Wie ich verliere</h2>
+              <div className="space-y-2">
+                {statistik.abschluesse_niederlagen.map((a) => (
+                  <div key={a.typ}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{ABSCHLUSS_LABEL[a.typ as keyof typeof ABSCHLUSS_LABEL] ?? a.typ}</span>
+                    </div>
+                    <StatBar value={a.anzahl} max={statistik.abschluesse_niederlagen[0].anzahl} color="bg-red-400" />
                   </div>
                 ))}
               </div>

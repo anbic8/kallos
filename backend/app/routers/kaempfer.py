@@ -151,22 +151,21 @@ def get_statistik(
 
     siege = niederlagen = unentschieden = 0
     technik_counter: Counter = Counter()
-    abschluss_counter: Counter = Counter()
+    abschluss_siege_counter: Counter = Counter()
+    abschluss_niederlagen_counter: Counter = Counter()
 
     for k in kaempfe:
-        if k.sieger == Sieger.unentschieden:
-            unentschieden += 1
-        elif (k.kaempfer_weiss_id == kaempfer_id and k.sieger == Sieger.weiss) or \
-             (k.kaempfer_blau_id == kaempfer_id and k.sieger == Sieger.blau):
-            siege += 1
-        else:
-            niederlagen += 1
-
         hat_gewonnen = (
             (k.kaempfer_weiss_id == kaempfer_id and k.sieger == Sieger.weiss) or
             (k.kaempfer_blau_id == kaempfer_id and k.sieger == Sieger.blau)
         )
-        if hat_gewonnen:
+        ist_unentschieden = k.sieger == Sieger.unentschieden
+
+        if ist_unentschieden:
+            unentschieden += 1
+        elif hat_gewonnen:
+            siege += 1
+            abschluss_siege_counter[k.abschluss.value] += 1
             technik_name = None
             if k.sieger_technik_id:
                 from ..models import Technik
@@ -177,8 +176,9 @@ def get_statistik(
                 technik_name = k.sieger_technik_frei
             if technik_name:
                 technik_counter[technik_name] += 1
-
-        abschluss_counter[k.abschluss.value] += 1
+        else:
+            niederlagen += 1
+            abschluss_niederlagen_counter[k.abschluss.value] += 1
 
     return KaempferStatistik(
         kaempfer_id=kaempfer_id,
@@ -187,5 +187,6 @@ def get_statistik(
         niederlagen=niederlagen,
         unentschieden=unentschieden,
         techniken=[TechnikStatistik(name=n, anzahl=c) for n, c in technik_counter.most_common(10)],
-        abschluesse=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_counter.most_common()],
+        abschluesse_siege=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_siege_counter.most_common()],
+        abschluesse_niederlagen=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_niederlagen_counter.most_common()],
     )
