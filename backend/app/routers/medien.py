@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/kaempfe", tags=["medien"])
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"}
-MAX_MEDIEN_MB = 50
+MAX_MEDIEN_MB = 2000
 
 
 @router.post("/{kampf_id}/medien", response_model=KampfMedienResponse, status_code=201)
