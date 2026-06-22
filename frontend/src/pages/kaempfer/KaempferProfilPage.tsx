@@ -123,11 +123,15 @@ export default function KaempferProfilPage() {
         )}
       </div>
 
-      {/* Statistiken -- Platzhalter fuer Phase 2 */}
-      <div className="card text-center py-8 text-gray-400">
-        <p className="text-3xl mb-2">📊</p>
-        <p className="text-sm">Kampfstatistiken folgen in Phase 2</p>
-      </div>
+      {/* Statistiken */}
+      <Link to={`/kaempfer/${kaempfer.id}/statistik`} className="card flex items-center gap-3 hover:border-blue-300 transition-colors">
+        <span className="text-3xl">📊</span>
+        <div>
+          <p className="font-semibold">Kampfstatistiken</p>
+          <p className="text-sm text-gray-500">Siege, Techniken, Verlauf</p>
+        </div>
+        <span className="ml-auto text-gray-400">›</span>
+      </Link>
 
       {/* Löschen (nur Trainer) */}
       {isTrainer() && (

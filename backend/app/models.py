@@ -1,10 +1,12 @@
 import enum
-from datetime import datetime
+from datetime import datetime, date, time
 from typing import Optional
-from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum
+from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum, Boolean, Date, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
+
+# ---------- Enums ----------
 
 class UserRolle(str, enum.Enum):
     admin = "admin"
@@ -50,6 +52,58 @@ class TechnikKategorie(str, enum.Enum):
     atemi_waza = "atemi_waza"
     sonstiges = "sonstiges"
 
+
+class VeranstaltungsTyp(str, enum.Enum):
+    liga = "liga"
+    turnier = "turnier"
+    meisterschaft = "meisterschaft"
+    kampftag = "kampftag"
+    pokal = "pokal"
+    sonstiges = "sonstiges"
+
+
+class KampfRunde(str, enum.Enum):
+    vorrunde = "vorrunde"
+    viertelfinale = "viertelfinale"
+    halbfinale = "halbfinale"
+    finale = "finale"
+    gruppenphase = "gruppenphase"
+    direktkampf = "direktkampf"
+    sonstiges = "sonstiges"
+
+
+class Sieger(str, enum.Enum):
+    weiss = "weiss"
+    blau = "blau"
+    unentschieden = "unentschieden"
+
+
+class Abschluss(str, enum.Enum):
+    ippon = "ippon"
+    waza_ari = "waza_ari"
+    yusei_gachi = "yusei_gachi"
+    shido = "shido"
+    hansoku_make = "hansoku_make"
+    aufgabe = "aufgabe"
+    sonstiges = "sonstiges"
+
+
+class EreignisTyp(str, enum.Enum):
+    ippon = "ippon"
+    waza_ari = "waza_ari"
+    shido = "shido"
+    hansoku_make = "hansoku_make"
+    golden_score = "golden_score"
+    medizin = "medizin"
+    sonstiges = "sonstiges"
+
+
+class KaempferFarbe(str, enum.Enum):
+    weiss = "weiss"
+    blau = "blau"
+
+
+# ---------- Models ----------
 
 class User(Base):
     __tablename__ = "users"
@@ -109,3 +163,62 @@ class Technik(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     kategorie: Mapped[Optional[TechnikKategorie]] = mapped_column(SAEnum(TechnikKategorie))
+
+
+class Veranstaltung(Base):
+    __tablename__ = "veranstaltungen"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    typ: Mapped[VeranstaltungsTyp] = mapped_column(SAEnum(VeranstaltungsTyp), nullable=False)
+    datum: Mapped[Optional[date]] = mapped_column(Date)
+    ort: Mapped[Optional[str]] = mapped_column(String(255))
+    veranstalter: Mapped[Optional[str]] = mapped_column(String(255))
+    notizen: Mapped[Optional[str]] = mapped_column(Text)
+    parent_liga_id: Mapped[Optional[int]] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=True)
+
+    kaempfe: Mapped[list["Kampf"]] = relationship("Kampf", back_populates="veranstaltung")
+
+
+class Kampf(Base):
+    __tablename__ = "kaempfe"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    veranstaltung_id: Mapped[int] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=False)
+    kaempfer_weiss_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    kaempfer_blau_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    gewichtsklasse_id: Mapped[Optional[int]] = mapped_column(ForeignKey("gewichtsklassen.id"), nullable=True)
+    runde: Mapped[Optional[KampfRunde]] = mapped_column(SAEnum(KampfRunde))
+    uhrzeit: Mapped[Optional[time]] = mapped_column(Time)
+    sieger: Mapped[Sieger] = mapped_column(SAEnum(Sieger), nullable=False)
+    abschluss: Mapped[Abschluss] = mapped_column(SAEnum(Abschluss), nullable=False)
+    sieger_technik_id: Mapped[Optional[int]] = mapped_column(ForeignKey("techniken.id"), nullable=True)
+    sieger_technik_frei: Mapped[Optional[str]] = mapped_column(String(255))
+    kampfzeit_sek: Mapped[Optional[int]] = mapped_column(Integer)
+    is_scouting: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    notizen: Mapped[Optional[str]] = mapped_column(Text)
+
+    veranstaltung: Mapped["Veranstaltung"] = relationship("Veranstaltung", back_populates="kaempfe")
+    kaempfer_weiss: Mapped["Kaempfer"] = relationship("Kaempfer", foreign_keys="[Kampf.kaempfer_weiss_id]")
+    kaempfer_blau: Mapped["Kaempfer"] = relationship("Kaempfer", foreign_keys="[Kampf.kaempfer_blau_id]")
+    gewichtsklasse: Mapped[Optional["Gewichtsklasse"]] = relationship("Gewichtsklasse")
+    sieger_technik: Mapped[Optional["Technik"]] = relationship("Technik", foreign_keys="[Kampf.sieger_technik_id]")
+    ereignisse: Mapped[list["KampfEreignis"]] = relationship(
+        "KampfEreignis", back_populates="kampf", order_by="KampfEreignis.zeitpunkt_sek"
+    )
+
+
+class KampfEreignis(Base):
+    __tablename__ = "kampf_ereignisse"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kampf_id: Mapped[int] = mapped_column(ForeignKey("kaempfe.id"), nullable=False)
+    zeitpunkt_sek: Mapped[Optional[int]] = mapped_column(Integer)
+    typ: Mapped[EreignisTyp] = mapped_column(SAEnum(EreignisTyp), nullable=False)
+    farbe: Mapped[KaempferFarbe] = mapped_column(SAEnum(KaempferFarbe), nullable=False)
+    technik_id: Mapped[Optional[int]] = mapped_column(ForeignKey("techniken.id"), nullable=True)
+    technik_frei: Mapped[Optional[str]] = mapped_column(String(255))
+    notiz: Mapped[Optional[str]] = mapped_column(Text)
+
+    kampf: Mapped["Kampf"] = relationship("Kampf", back_populates="ereignisse")
+    technik: Mapped[Optional["Technik"]] = relationship("Technik")

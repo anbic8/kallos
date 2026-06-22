@@ -1,5 +1,8 @@
 import axios from 'axios'
-import type { Kaempfer, TokenResponse, User, Verein, Gewichtsklasse, Technik } from './types'
+import type {
+  Kaempfer, TokenResponse, User, Verein, Gewichtsklasse, Technik,
+  Veranstaltung, Kampf, KampfEreignis, KaempferStatistik,
+} from './types'
 
 const api = axios.create({ baseURL: '/api' })
 
@@ -20,7 +23,8 @@ api.interceptors.response.use(
   }
 )
 
-// --- Auth ---
+// ---------- Auth ----------
+
 export const login = async (email: string, password: string): Promise<TokenResponse> => {
   const form = new FormData()
   form.append('username', email)
@@ -49,7 +53,8 @@ export const updateUser = async (id: number, payload: Partial<{ email: string; p
   return data
 }
 
-// --- Vereine ---
+// ---------- Vereine ----------
+
 export const fetchVereine = async (): Promise<Verein[]> => {
   const { data } = await api.get<Verein[]>('/vereine')
   return data
@@ -60,9 +65,11 @@ export const createVerein = async (payload: Omit<Verein, 'id'>): Promise<Verein>
   return data
 }
 
-// --- Kaempfer ---
-export const fetchKaempfer = async (intern = true): Promise<Kaempfer[]> => {
-  const { data } = await api.get<Kaempfer[]>('/kaempfer', { params: { intern } })
+// ---------- Kaempfer ----------
+
+export const fetchKaempfer = async (intern?: boolean): Promise<Kaempfer[]> => {
+  const params = intern != null ? { intern } : {}
+  const { data } = await api.get<Kaempfer[]>('/kaempfer', { params })
   return data
 }
 
@@ -92,7 +99,13 @@ export const uploadFoto = async (id: number, file: File): Promise<Kaempfer> => {
   return data
 }
 
-// --- Stammdaten ---
+export const fetchKaempferStatistik = async (id: number): Promise<KaempferStatistik> => {
+  const { data } = await api.get<KaempferStatistik>(`/kaempfer/${id}/statistik`)
+  return data
+}
+
+// ---------- Stammdaten ----------
+
 export const fetchGewichtsklassen = async (): Promise<Gewichtsklasse[]> => {
   const { data } = await api.get<Gewichtsklasse[]>('/gewichtsklassen')
   return data
@@ -106,6 +119,67 @@ export const fetchTechniken = async (): Promise<Technik[]> => {
 export const createTechnik = async (payload: { name: string; kategorie?: string }): Promise<Technik> => {
   const { data } = await api.post<Technik>('/techniken', payload)
   return data
+}
+
+// ---------- Veranstaltungen ----------
+
+export const fetchVeranstaltungen = async (): Promise<Veranstaltung[]> => {
+  const { data } = await api.get<Veranstaltung[]>('/veranstaltungen')
+  return data
+}
+
+export const fetchVeranstaltungById = async (id: number): Promise<Veranstaltung> => {
+  const { data } = await api.get<Veranstaltung>(`/veranstaltungen/${id}`)
+  return data
+}
+
+export const createVeranstaltung = async (payload: Omit<Veranstaltung, 'id'>): Promise<Veranstaltung> => {
+  const { data } = await api.post<Veranstaltung>('/veranstaltungen', payload)
+  return data
+}
+
+export const updateVeranstaltung = async (id: number, payload: Partial<Veranstaltung>): Promise<Veranstaltung> => {
+  const { data } = await api.patch<Veranstaltung>(`/veranstaltungen/${id}`, payload)
+  return data
+}
+
+export const deleteVeranstaltung = async (id: number): Promise<void> => {
+  await api.delete(`/veranstaltungen/${id}`)
+}
+
+// ---------- Kaempfe ----------
+
+export const fetchKaempfe = async (params?: { veranstaltung_id?: number; kaempfer_id?: number }): Promise<Kampf[]> => {
+  const { data } = await api.get<Kampf[]>('/kaempfe', { params })
+  return data
+}
+
+export const fetchKampfById = async (id: number): Promise<Kampf> => {
+  const { data } = await api.get<Kampf>(`/kaempfe/${id}`)
+  return data
+}
+
+export const createKampf = async (payload: object): Promise<Kampf> => {
+  const { data } = await api.post<Kampf>('/kaempfe', payload)
+  return data
+}
+
+export const updateKampf = async (id: number, payload: object): Promise<Kampf> => {
+  const { data } = await api.patch<Kampf>(`/kaempfe/${id}`, payload)
+  return data
+}
+
+export const deleteKampf = async (id: number): Promise<void> => {
+  await api.delete(`/kaempfe/${id}`)
+}
+
+export const createKampfEreignis = async (kampfId: number, payload: object): Promise<KampfEreignis> => {
+  const { data } = await api.post<KampfEreignis>(`/kaempfe/${kampfId}/ereignisse`, payload)
+  return data
+}
+
+export const deleteKampfEreignis = async (kampfId: number, ereignisId: number): Promise<void> => {
+  await api.delete(`/kaempfe/${kampfId}/ereignisse/${ereignisId}`)
 }
 
 export default api

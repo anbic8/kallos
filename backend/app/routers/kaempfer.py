@@ -1,10 +1,12 @@
 import os
 import uuid
+from collections import Counter
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
-from ..models import User, Kaempfer, UserRolle
-from ..schemas import KaempferCreate, KaempferUpdate, KaempferResponse
+from ..models import User, Kaempfer, UserRolle, Kampf, Sieger
+from ..schemas import KaempferCreate, KaempferUpdate, KaempferResponse, KaempferStatistik, TechnikStatistik, AbschlussStatistik
 from ..deps import get_current_user, require_trainer
 from ..config import settings
 
@@ -12,6 +14,22 @@ router = APIRouter(prefix="/api/kaempfer", tags=["kaempfer"])
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_FOTO_MB = 10
+
+
+@router.get("", response_model=list[KaempferResponse])
+def list_kaempfer(
+    intern: Optional[bool] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    q = db.query(Kaempfer).options(joinedload(Kaempfer.verein))
+    if current_user.rolle == UserRolle.athlet:
+        q = q.filter(Kaempfer.user_id == current_user.id)
+    elif intern is True:
+        q = q.filter(Kaempfer.verein_id.isnot(None))
+    elif intern is False:
+        q = q.filter(Kaempfer.verein_id.is_(None))
+    return q.order_by(Kaempfer.nachname, Kaempfer.vorname).all()
 
 
 def _kaempfer_or_403(kaempfer_id: int, current_user: User, db: Session) -> Kaempfer:
@@ -22,25 +40,6 @@ def _kaempfer_or_403(kaempfer_id: int, current_user: User, db: Session) -> Kaemp
     if current_user.rolle == UserRolle.athlet and k.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Kein Zugriff")
     return k
-
-
-@router.get("", response_model=list[KaempferResponse])
-def list_kaempfer(
-    intern: bool = True,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    intern=true  -> alle Kämpfer mit verein_id (Vereinsmitglieder)
-    intern=false -> alle externen Kämpfer (verein_id null oder anderer Verein)
-    Athlet sieht immer nur das eigene Profil.
-    """
-    q = db.query(Kaempfer).options(joinedload(Kaempfer.verein))
-    if current_user.rolle == UserRolle.athlet:
-        q = q.filter(Kaempfer.user_id == current_user.id)
-    elif intern:
-        q = q.filter(Kaempfer.verein_id.isnot(None))
-    return q.order_by(Kaempfer.nachname, Kaempfer.vorname).all()
 
 
 @router.post("", response_model=KaempferResponse, status_code=201)
@@ -133,3 +132,55 @@ def delete_kaempfer(
         raise HTTPException(status_code=404, detail="Kämpfer nicht gefunden")
     db.delete(k)
     db.commit()
+
+
+@router.get("/{kaempfer_id}/statistik", response_model=KaempferStatistik)
+def get_statistik(
+    kaempfer_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not db.get(Kaempfer, kaempfer_id):
+        raise HTTPException(status_code=404, detail="Kämpfer nicht gefunden")
+
+    kaempfe = (
+        db.query(Kampf)
+        .filter((Kampf.kaempfer_weiss_id == kaempfer_id) | (Kampf.kaempfer_blau_id == kaempfer_id))
+        .all()
+    )
+
+    siege = niederlagen = unentschieden = 0
+    technik_counter: Counter = Counter()
+    abschluss_counter: Counter = Counter()
+
+    for k in kaempfe:
+        if k.sieger == Sieger.unentschieden:
+            unentschieden += 1
+        elif (k.kaempfer_weiss_id == kaempfer_id and k.sieger == Sieger.weiss) or \
+             (k.kaempfer_blau_id == kaempfer_id and k.sieger == Sieger.blau):
+            siege += 1
+        else:
+            niederlagen += 1
+
+        technik_name = None
+        if k.sieger_technik_id:
+            from ..models import Technik
+            t = db.get(Technik, k.sieger_technik_id)
+            if t:
+                technik_name = t.name
+        elif k.sieger_technik_frei:
+            technik_name = k.sieger_technik_frei
+        if technik_name:
+            technik_counter[technik_name] += 1
+
+        abschluss_counter[k.abschluss.value] += 1
+
+    return KaempferStatistik(
+        kaempfer_id=kaempfer_id,
+        total=len(kaempfe),
+        siege=siege,
+        niederlagen=niederlagen,
+        unentschieden=unentschieden,
+        techniken=[TechnikStatistik(name=n, anzahl=c) for n, c in technik_counter.most_common(10)],
+        abschluesse=[AbschlussStatistik(typ=t, anzahl=c) for t, c in abschluss_counter.most_common()],
+    )

@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '🏠' },
   { to: '/kaempfer', label: 'Kämpfer', icon: '🥋' },
+  { to: '/veranstaltungen', label: 'Turniere', icon: '🏆' },
 ]
 
 export default function Layout({ children }: { children: React.ReactNode }) {

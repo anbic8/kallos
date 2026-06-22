@@ -9,6 +9,12 @@ import DashboardPage from './pages/DashboardPage'
 import KaempferListePage from './pages/kaempfer/KaempferListePage'
 import KaempferProfilPage from './pages/kaempfer/KaempferProfilPage'
 import KaempferFormPage from './pages/kaempfer/KaempferFormPage'
+import VeranstaltungenListePage from './pages/veranstaltungen/VeranstaltungenListePage'
+import VeranstaltungFormPage from './pages/veranstaltungen/VeranstaltungFormPage'
+import VeranstaltungDetailPage from './pages/veranstaltungen/VeranstaltungDetailPage'
+import KampfFormPage from './pages/kaempfe/KampfFormPage'
+import KampfDetailPage from './pages/kaempfe/KampfDetailPage'
+import StatistikPage from './pages/statistik/StatistikPage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -34,6 +40,13 @@ export default function App() {
                   <Route path="/kaempfer/neu" element={<KaempferFormPage />} />
                   <Route path="/kaempfer/:id" element={<KaempferProfilPage />} />
                   <Route path="/kaempfer/:id/bearbeiten" element={<KaempferFormPage />} />
+                  <Route path="/kaempfer/:id/statistik" element={<StatistikPage />} />
+                  <Route path="/veranstaltungen" element={<VeranstaltungenListePage />} />
+                  <Route path="/veranstaltungen/neu" element={<VeranstaltungFormPage />} />
+                  <Route path="/veranstaltungen/:id" element={<VeranstaltungDetailPage />} />
+                  <Route path="/veranstaltungen/:id/bearbeiten" element={<VeranstaltungFormPage />} />
+                  <Route path="/veranstaltungen/:veranstaltungId/kaempfe/neu" element={<KampfFormPage />} />
+                  <Route path="/kaempfe/:id" element={<KampfDetailPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>
