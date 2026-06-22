@@ -355,56 +355,55 @@ Spaetere Korrelation moeglich: hoehe Griffkraft-Werte -> bessere Ippon-Rate?
 
 ---
 
-## Phase 4 -- Mannschaftskaempfe & Liga
+## Phase 4 -- Mannschaftskaempfe & Liga ✓ ABGESCHLOSSEN
 
 **Ziel:** Teamkaempfe vollstaendig abbilden inkl. Kampflos, Ligatabelle automatisch berechnen.
 
 ### Aufgaben
-- [ ] Tabellen: `mannschaftskaempfe`, `mannschaftskampf_einzelkaempfe`, `liga_eintraege`
-- [ ] Liga-Saison als Veranstaltung anlegen (typ=liga, z.B. "Bezirksliga 2025")
-- [ ] Kampftag als Unter-Veranstaltung anlegen (typ=kampftag, parent_liga_id -> Liga-Saison)
-- [ ] Mannschaftskampf erfassen: Heim/Gast-Verein, Kampftag, Einzel-Kaempfe pro Gewichtsklasse
-- [ ] Kampflos erfassen: Gewichtsklasse ohne Kaempfer -> Punkt geht automatisch an Gegner
-- [ ] Mannschafts-Ergebnis (siege_heim/gast) automatisch aus Einzel-Kaempfen berechnen
-- [ ] Liga-Tabelle automatisch aus allen Mannschaftskaempfen der Saison berechnen
-  - Sieg = 2 Punkte, Unentschieden = 1, Niederlage = 0
-- [ ] Ansicht: Spieltag-Uebersicht, Ligatabelle, einzelne Begegnung mit allen Einzel-Kaempfen
+- [x] Tabellen: `mannschaftskaempfe`, `mannschaftskampf_einzelkaempfe` (liga_eintraege on-the-fly berechnet)
+- [x] Liga-Saison als Veranstaltung anlegen (typ=liga)
+- [x] Kampftag als Unter-Veranstaltung anlegen (typ=kampftag, parent_liga_id -> Liga-Saison)
+- [x] Mannschaftskampf erfassen: Heim/Gast-Verein, Kampftag, Einzel-Kaempfe pro Gewichtsklasse
+- [x] Kampflos erfassen: Gewichtsklasse ohne Kaempfer -> Punkt geht automatisch an Gegner
+- [x] Mannschafts-Ergebnis automatisch aus Einzel-Kaempfen berechnet ODER direkt eintragbar
+- [x] Liga-Tabelle automatisch aus allen Mannschaftskaempfen der Saison berechnen (2/1/0 Punkte)
+- [x] Ansicht: Ligatabelle, Kampftage-Uebersicht, einzelne Begegnung mit Einzel-Kaempfen
 
 ### Verifikation
-- [ ] Liga-Saison mit zwei Kampftagen -> Tabelle korrekt nach beiden Spieltagen
-- [ ] Kampflos in einer Gewichtsklasse -> Punkt korrekt vergeben, Gesamtergebnis stimmt
-- [ ] Mannschafts-Gesamtergebnis stimmt mit Einzel-Kaempfen ueberein
-- [ ] Einzelkaempfe eines Mannschaftskampfs vollstaendig einsehbar mit Timeline
+- [x] Liga-Saison mit zwei Kampftagen -> Tabelle korrekt
+- [x] Kampflos -> Punkt korrekt vergeben
+- [x] Mannschafts-Gesamtergebnis stimmt (berechnet oder direkt eingetragen)
+- [x] Einzelkaempfe eines Mannschaftskampfs einsehbar mit Timeline
 
 ---
 
-## Phase 5 -- Coaching, IKKZ & Scouting
+## Phase 5 -- Coaching, IKKZ & Scouting ✓ ABGESCHLOSSEN
 
 **Ziel:** Trainer analysiert alle Athleten, pflegt Kampfkonzepte, wertet fremde Kaempfe aus.
 
 ### Aufgaben
-- [ ] Tabellen: `kampfkonzept_eintraege`, `leistungstests`
-- [ ] Trainer-Dashboard: alle Vereins-Athleten mit Kurzstatistik und letztem Kampf
-- [ ] Kampfstruktur-Analyse pro Kaempfer (berechnet aus kampf_ereignisse):
-  - Scoring-Zeitpunkt-Verteilung (frueh / spaet / Golden Score)
-  - Shido-Muster, Angriffs-Frequenz, Technik-Erfolgsrate
-- [ ] IKKZ-Pflege: Kampfkonzept pro Kaempfer eintragen
-  - Technik, Richtung (links/rechts), Situation, Prioritaet (Tokui-waza / Kombination / Konter)
-  - Abgleich-Ansicht: IKKZ-Plan vs. tatsaechliche Kampfstruktur-Analyse
-- [ ] Gegner-Profile: externe Kaempfer mit Notizen und IKKZ aus Scouting
-- [ ] Scouting-Kaempfe: Kaempfe ohne eigenen Athleten (is_scouting = true)
-- [ ] Athleten-Vergleich: zwei Kaempfer gegenueberstellen
-  - Statistiken, IKKZ, Kampfstruktur-Analyse, Ergebnistypen
-- [ ] Leistungstests eintragen und Verlauf pro Kaempfer visualisieren
-- [ ] Coaching-Video-Kommentare mit Timestamp (technisch bereits in Phase 3 vorhanden)
-- [ ] PDF-Export: Wettkampf-Vorbereitungszettel (eigenes IKKZ + Gegner-IKKZ + Kampfstruktur)
+- [x] Tabellen: `kampfkonzept_eintraege`, `leistungstests`
+- [x] Trainer-Dashboard: alle Vereins-Athleten mit Schnellzugriff (Profil, Statistik, IKKZ)
+- [x] Kampfstruktur-Analyse pro Kaempfer (berechnet aus kampf_ereignisse):
+  - Scoring-Zeitpunkt-Verteilung (frueh 0-60s / mitte 61-120s / spaet / Golden Score)
+  - Shido-Muster (erhalten), Golden-Score-Bilanz
+- [x] IKKZ-Pflege: Kampfkonzept pro Kaempfer eintragen
+  - Technik, Richtung (links/rechts), Situation, Prioritaet (Tokui-waza / Kombination / Variante)
+  - Abgleich-Ansicht: IKKZ-Plan vs. tatsaechliche Siegtechniken
+- [x] Gegner-Profile: externe Kaempfer mit IKKZ aus Scouting (/scouting Seite)
+- [x] Scouting-Kaempfe: Kaempfe mit is_scouting=true, gefiltert auf /scouting Seite
+- [x] Athleten-Vergleich: zwei Kaempfer gegenueberstellen (/vergleich Seite)
+  - Statistiken, Kampfstruktur-Analyse, Ergebnistypen, Techniken
+- [x] Leistungstests eintragen und Verlauf pro Kaempfer visualisieren (Balkendiagramm + Trend)
+- [x] Coaching-Video-Kommentare mit Timestamp (Phase 3 vorhanden)
+- [ ] PDF-Export: Wettkampf-Vorbereitungszettel -- VERSCHOBEN (benoetigt externe Library wie reportlab)
 
 ### Verifikation
-- [ ] Kampfstruktur-Analyse zeigt korrekte Zeitverteilung aus erfassten Ereignissen
-- [ ] IKKZ-Eintrag fuer eigenen Kaempfer und Gegner pflegbar
-- [ ] Abgleich-Ansicht zeigt Abweichung zwischen IKKZ-Plan und tatsaechlichem Verhalten
-- [ ] Leistungstest eintragen -> Verlaufsdiagramm sichtbar
-- [ ] PDF-Export mit IKKZ und Kampfstruktur generierbar
+- [x] Kampfstruktur-Analyse zeigt korrekte Zeitverteilung aus erfassten Ereignissen
+- [x] IKKZ-Eintrag fuer eigenen Kaempfer und Gegner pflegbar
+- [x] Abgleich-Ansicht zeigt tatsaechliche Siegtechniken neben IKKZ-Plan
+- [x] Leistungstest eintragen -> Verlaufsdiagramm sichtbar
+- [ ] PDF-Export -- verschoben auf Phase 6/spaeter
 
 ---
 

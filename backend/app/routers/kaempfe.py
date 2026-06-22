@@ -33,6 +33,7 @@ def _load_kampf(kampf_id: int, db: Session) -> Kampf:
 def list_kaempfe(
     veranstaltung_id: Optional[int] = None,
     kaempfer_id: Optional[int] = None,
+    is_scouting: Optional[bool] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -52,6 +53,8 @@ def list_kaempfe(
         q = q.filter(Kampf.veranstaltung_id == veranstaltung_id)
     if kaempfer_id:
         q = q.filter((Kampf.kaempfer_weiss_id == kaempfer_id) | (Kampf.kaempfer_blau_id == kaempfer_id))
+    if is_scouting is not None:
+        q = q.filter(Kampf.is_scouting == is_scouting)
     if current_user.rolle == UserRolle.athlet and current_user.kaempfer:
         kid = current_user.kaempfer.id
         q = q.filter((Kampf.kaempfer_weiss_id == kid) | (Kampf.kaempfer_blau_id == kid))

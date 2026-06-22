@@ -20,6 +20,8 @@ import MannschaftskampfDetailPage from './pages/mannschaft/MannschaftskampfDetai
 import MannschaftskampfFormPage from './pages/mannschaft/MannschaftskampfFormPage'
 import IKKZPage from './pages/ikkz/IKKZPage'
 import LeistungstestPage from './pages/leistungstests/LeistungstestPage'
+import VergleichPage from './pages/vergleich/VergleichPage'
+import ScoutingPage from './pages/scouting/ScoutingPage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -57,6 +59,8 @@ export default function App() {
                   <Route path="/mannschaftskaempfe/:id" element={<MannschaftskampfDetailPage />} />
                   <Route path="/kaempfer/:id/ikkz" element={<IKKZPage />} />
                   <Route path="/kaempfer/:id/leistungstests" element={<LeistungstestPage />} />
+                  <Route path="/vergleich" element={<VergleichPage />} />
+                  <Route path="/scouting" element={<ScoutingPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

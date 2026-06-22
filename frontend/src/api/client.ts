@@ -150,7 +150,7 @@ export const deleteVeranstaltung = async (id: number): Promise<void> => {
 
 // ---------- Kaempfe ----------
 
-export const fetchKaempfe = async (params?: { veranstaltung_id?: number; kaempfer_id?: number }): Promise<Kampf[]> => {
+export const fetchKaempfe = async (params?: { veranstaltung_id?: number; kaempfer_id?: number; is_scouting?: boolean }): Promise<Kampf[]> => {
   const { data } = await api.get<Kampf[]>('/kaempfe', { params })
   return data
 }
