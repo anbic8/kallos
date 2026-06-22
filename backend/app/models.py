@@ -315,6 +315,8 @@ class Mannschaftskampf(Base):
     veranstaltung_id: Mapped[int] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=False)
     verein_heim_id: Mapped[int] = mapped_column(ForeignKey("vereine.id"), nullable=False)
     verein_gast_id: Mapped[int] = mapped_column(ForeignKey("vereine.id"), nullable=False)
+    siege_heim_direkt: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    siege_gast_direkt: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     veranstaltung: Mapped["Veranstaltung"] = relationship("Veranstaltung")
     verein_heim: Mapped["Verein"] = relationship("Verein", foreign_keys="[Mannschaftskampf.verein_heim_id]")

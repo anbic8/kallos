@@ -1,7 +1,7 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  fetchMannschaftskampfById, deleteMannschaftskampf,
+  fetchMannschaftskampfById, deleteMannschaftskampf, updateMannschaftskampf,
   addEinzelkampf, deleteEinzelkampf,
   fetchKaempfe, fetchGewichtsklassen,
 } from '../../api/client'
@@ -26,6 +26,9 @@ export default function MannschaftskampfDetailPage() {
   const navigate = useNavigate()
   const { isTrainer } = useAuthStore()
   const [mk, setMk] = useState<Mannschaftskampf | null>(null)
+  const [editErgebnis, setEditErgebnis] = useState(false)
+  const [ergebnisForm, setErgebnisForm] = useState({ heim: '', gast: '' })
+  const [savingErgebnis, setSavingErgebnis] = useState(false)
   const [gewichtsklassen, setGewichtsklassen] = useState<Gewichtsklasse[]>([])
   const [verfuegbareKaempfe, setVerfuegbareKaempfe] = useState<Kampf[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,6 +88,21 @@ export default function MannschaftskampfDetailPage() {
     }
   }
 
+  const handleSaveErgebnis = async () => {
+    if (!mk) return
+    setSavingErgebnis(true)
+    try {
+      const updated = await updateMannschaftskampf(mk.id, {
+        siege_heim_direkt: ergebnisForm.heim !== '' ? Number(ergebnisForm.heim) : null,
+        siege_gast_direkt: ergebnisForm.gast !== '' ? Number(ergebnisForm.gast) : null,
+      })
+      setMk(updated)
+      setEditErgebnis(false)
+    } finally {
+      setSavingErgebnis(false)
+    }
+  }
+
   const handleDeleteEinzelkampf = async (ek: Einzelkampf) => {
     if (!mk) return
     await deleteEinzelkampf(mk.id, ek.id)
@@ -112,7 +130,7 @@ export default function MannschaftskampfDetailPage() {
             </p>
             <p className="text-xs text-gray-500">Heim</p>
           </div>
-          <div className="text-center flex-shrink-0">
+          <div className="text-center flex-shrink-0 space-y-1">
             <p className="text-3xl font-bold">
               <span className={mk.siege_heim > mk.siege_gast ? 'text-green-600' : mk.siege_heim < mk.siege_gast ? 'text-red-500' : ''}>
                 {mk.siege_heim}
@@ -122,6 +140,12 @@ export default function MannschaftskampfDetailPage() {
                 {mk.siege_gast}
               </span>
             </p>
+            {mk.ergebnis_modus === 'direkt' && (
+              <span className="text-xs text-gray-400">direkt eingetragen</span>
+            )}
+            {mk.ergebnis_modus === 'berechnet' && (
+              <span className="text-xs text-gray-400">aus Einzelkämpfen</span>
+            )}
           </div>
           <div className="text-center flex-1">
             <p className={`font-bold text-lg ${ergebnis === 'gast' ? 'text-green-600' : ergebnis === 'heim' ? 'text-red-500' : ''}`}>
@@ -130,6 +154,37 @@ export default function MannschaftskampfDetailPage() {
             <p className="text-xs text-gray-500">Gast</p>
           </div>
         </div>
+
+        {/* Direktes Ergebnis bearbeiten */}
+        {isTrainer() && mk.ergebnis_modus === 'direkt' && !editErgebnis && (
+          <button
+            onClick={() => { setErgebnisForm({ heim: String(mk.siege_heim_direkt ?? ''), gast: String(mk.siege_gast_direkt ?? '') }); setEditErgebnis(true) }}
+            className="text-xs text-blue-600 hover:underline w-full text-center mt-1"
+          >
+            Ergebnis bearbeiten
+          </button>
+        )}
+        {isTrainer() && !editErgebnis && mk.ergebnis_modus === 'berechnet' && (
+          <button
+            onClick={() => { setErgebnisForm({ heim: String(mk.siege_heim), gast: String(mk.siege_gast) }); setEditErgebnis(true) }}
+            className="text-xs text-gray-400 hover:underline w-full text-center mt-1"
+          >
+            Ergebnis manuell überschreiben
+          </button>
+        )}
+        {editErgebnis && (
+          <div className="flex items-center gap-2 mt-2 justify-center">
+            <input className="input w-16 text-center font-bold text-lg" type="number" min="0"
+              value={ergebnisForm.heim} onChange={(e) => setErgebnisForm(f => ({ ...f, heim: e.target.value }))} />
+            <span className="text-gray-400">:</span>
+            <input className="input w-16 text-center font-bold text-lg" type="number" min="0"
+              value={ergebnisForm.gast} onChange={(e) => setErgebnisForm(f => ({ ...f, gast: e.target.value }))} />
+            <button onClick={handleSaveErgebnis} disabled={savingErgebnis} className="btn-primary text-sm">
+              {savingErgebnis ? '...' : 'Speichern'}
+            </button>
+            <button onClick={() => setEditErgebnis(false)} className="btn-secondary text-sm">✕</button>
+          </div>
+        )}
       </div>
 
       {/* Einzelkämpfe */}

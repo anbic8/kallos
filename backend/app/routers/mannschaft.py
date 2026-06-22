@@ -8,7 +8,7 @@ from ..models import (
     Sieger, KampflosSeite,
 )
 from ..schemas import (
-    MannschaftskampfCreate, MannschaftskampfResponse,
+    MannschaftskampfCreate, MannschaftskampfUpdate, MannschaftskampfResponse,
     EinzelkampfCreate, EinzelkampfResponse,
     LigaTabelle, LigaTabelleneintrag,
     VeranstaltungResponse,
@@ -68,9 +68,18 @@ def _compute_siege(mk: Mannschaftskampf, db: Session) -> tuple[int, int]:
 
 
 def _mk_to_response(mk: Mannschaftskampf, db: Session) -> MannschaftskampfResponse:
-    siege_heim, siege_gast = _compute_siege(mk, db)
+    if mk.einzelkaempfe:
+        siege_heim, siege_gast = _compute_siege(mk, db)
+        modus = "berechnet"
+    elif mk.siege_heim_direkt is not None and mk.siege_gast_direkt is not None:
+        siege_heim, siege_gast = mk.siege_heim_direkt, mk.siege_gast_direkt
+        modus = "direkt"
+    else:
+        siege_heim, siege_gast = 0, 0
+        modus = "direkt"
     mk.siege_heim = siege_heim
     mk.siege_gast = siege_gast
+    mk.ergebnis_modus = modus
     return MannschaftskampfResponse.model_validate(mk)
 
 
@@ -116,6 +125,22 @@ def create_mannschaftskampf(
 
 @router.get("/api/mannschaftskaempfe/{mk_id}", response_model=MannschaftskampfResponse)
 def get_mannschaftskampf(mk_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    return _mk_to_response(_load_mk(mk_id, db), db)
+
+
+@router.patch("/api/mannschaftskaempfe/{mk_id}", response_model=MannschaftskampfResponse)
+def update_mannschaftskampf(
+    mk_id: int,
+    data: MannschaftskampfUpdate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_trainer),
+):
+    mk = db.get(Mannschaftskampf, mk_id)
+    if not mk:
+        raise HTTPException(status_code=404, detail="Mannschaftskampf nicht gefunden")
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(mk, field, value)
+    db.commit()
     return _mk_to_response(_load_mk(mk_id, db), db)
 
 

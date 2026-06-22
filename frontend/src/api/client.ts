@@ -234,6 +234,11 @@ export const createMannschaftskampf = async (payload: object): Promise<Mannschaf
   return data
 }
 
+export const updateMannschaftskampf = async (id: number, payload: object): Promise<Mannschaftskampf> => {
+  const { data } = await api.patch<Mannschaftskampf>(`/mannschaftskaempfe/${id}`, payload)
+  return data
+}
+
 export const deleteMannschaftskampf = async (id: number): Promise<void> => {
   await api.delete(`/mannschaftskaempfe/${id}`)
 }

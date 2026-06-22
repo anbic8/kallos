@@ -210,6 +210,9 @@ export interface Mannschaftskampf {
   verein_gast_id: number
   siege_heim: number
   siege_gast: number
+  siege_heim_direkt?: number
+  siege_gast_direkt?: number
+  ergebnis_modus: 'berechnet' | 'direkt'
   verein_heim?: Verein
   verein_gast?: Verein
   einzelkaempfe: Einzelkampf[]

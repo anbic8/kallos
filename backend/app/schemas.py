@@ -354,6 +354,13 @@ class MannschaftskampfCreate(BaseModel):
     veranstaltung_id: int
     verein_heim_id: int
     verein_gast_id: int
+    siege_heim_direkt: Optional[int] = None
+    siege_gast_direkt: Optional[int] = None
+
+
+class MannschaftskampfUpdate(BaseModel):
+    siege_heim_direkt: Optional[int] = None
+    siege_gast_direkt: Optional[int] = None
 
 
 class MannschaftskampfResponse(BaseModel):
@@ -363,6 +370,9 @@ class MannschaftskampfResponse(BaseModel):
     verein_gast_id: int
     siege_heim: int = 0
     siege_gast: int = 0
+    siege_heim_direkt: Optional[int] = None
+    siege_gast_direkt: Optional[int] = None
+    ergebnis_modus: str = "berechnet"  # "berechnet" | "direkt"
     verein_heim: Optional[VereinResponse] = None
     verein_gast: Optional[VereinResponse] = None
     einzelkaempfe: list[EinzelkampfResponse] = []
