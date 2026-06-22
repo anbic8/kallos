@@ -40,6 +40,9 @@ class GKGeschlecht(str, enum.Enum):
 
 
 class Altersklasse(str, enum.Enum):
+    U9 = "U9"
+    U11 = "U11"
+    U13 = "U13"
     U15 = "U15"
     U18 = "U18"
     U21 = "U21"
@@ -91,6 +94,7 @@ class Abschluss(str, enum.Enum):
 class EreignisTyp(str, enum.Enum):
     ippon = "ippon"
     waza_ari = "waza_ari"
+    yuko = "yuko"
     shido = "shido"
     hansoku_make = "hansoku_make"
     golden_score = "golden_score"
@@ -177,7 +181,7 @@ class Veranstaltung(Base):
     notizen: Mapped[Optional[str]] = mapped_column(Text)
     parent_liga_id: Mapped[Optional[int]] = mapped_column(ForeignKey("veranstaltungen.id"), nullable=True)
 
-    kaempfe: Mapped[list["Kampf"]] = relationship("Kampf", back_populates="veranstaltung")
+    kaempfe: Mapped[list["Kampf"]] = relationship("Kampf", back_populates="veranstaltung", cascade="all, delete-orphan")
 
 
 class Kampf(Base):
@@ -204,7 +208,7 @@ class Kampf(Base):
     gewichtsklasse: Mapped[Optional["Gewichtsklasse"]] = relationship("Gewichtsklasse")
     sieger_technik: Mapped[Optional["Technik"]] = relationship("Technik", foreign_keys="[Kampf.sieger_technik_id]")
     ereignisse: Mapped[list["KampfEreignis"]] = relationship(
-        "KampfEreignis", back_populates="kampf", order_by="KampfEreignis.zeitpunkt_sek"
+        "KampfEreignis", back_populates="kampf", order_by="KampfEreignis.zeitpunkt_sek", cascade="all, delete-orphan"
     )
 
 

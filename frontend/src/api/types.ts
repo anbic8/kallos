@@ -2,13 +2,13 @@ export type UserRolle = 'admin' | 'trainer' | 'athlet'
 export type Guertel = 'weiss' | 'gelb' | 'orange' | 'gruen' | 'blau' | 'braun' | 'schwarz' | 'dan2' | 'dan3' | 'dan4' | 'dan5'
 export type Geschlecht = 'm' | 'w' | 'd'
 export type GKGeschlecht = 'm' | 'w'
-export type Altersklasse = 'U15' | 'U18' | 'U21' | 'Senior'
+export type Altersklasse = 'U9' | 'U11' | 'U13' | 'U15' | 'U18' | 'U21' | 'Senior'
 export type TechnikKategorie = 'nage_waza' | 'katame_waza' | 'atemi_waza' | 'sonstiges'
 export type VeranstaltungsTyp = 'liga' | 'turnier' | 'meisterschaft' | 'kampftag' | 'pokal' | 'sonstiges'
 export type KampfRunde = 'vorrunde' | 'viertelfinale' | 'halbfinale' | 'finale' | 'gruppenphase' | 'direktkampf' | 'sonstiges'
 export type Sieger = 'weiss' | 'blau' | 'unentschieden'
 export type Abschluss = 'ippon' | 'waza_ari' | 'yusei_gachi' | 'shido' | 'hansoku_make' | 'aufgabe' | 'sonstiges'
-export type EreignisTyp = 'ippon' | 'waza_ari' | 'shido' | 'hansoku_make' | 'golden_score' | 'medizin' | 'sonstiges'
+export type EreignisTyp = 'ippon' | 'waza_ari' | 'yuko' | 'shido' | 'hansoku_make' | 'golden_score' | 'medizin' | 'sonstiges'
 export type KaempferFarbe = 'weiss' | 'blau'
 
 export interface User {
@@ -187,6 +187,7 @@ export const ABSCHLUSS_LABEL: Record<Abschluss, string> = {
 export const EREIGNISTYP_LABEL: Record<EreignisTyp, string> = {
   ippon: 'Ippon',
   waza_ari: 'Waza-ari',
+  yuko: 'Yuko',
   shido: 'Shido',
   hansoku_make: 'Hansoku-make',
   golden_score: 'Golden Score',

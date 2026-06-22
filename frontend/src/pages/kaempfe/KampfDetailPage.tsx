@@ -11,7 +11,7 @@ function SiegerBadge({ sieger }: { sieger: string }) {
   return <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold text-sm">🤝 Unentschieden</span>
 }
 
-const EREIGNIS_TYPEN: EreignisTyp[] = ['ippon', 'waza_ari', 'shido', 'hansoku_make', 'golden_score', 'medizin', 'sonstiges']
+const EREIGNIS_TYPEN: EreignisTyp[] = ['ippon', 'waza_ari', 'yuko', 'shido', 'hansoku_make', 'golden_score', 'medizin', 'sonstiges']
 
 export default function KampfDetailPage() {
   const { id } = useParams<{ id: string }>()

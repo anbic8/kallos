@@ -82,6 +82,34 @@ GOKYO: list[tuple[str, TechnikKategorie]] = [
 ]
 
 GEWICHTSKLASSEN: list[tuple[str, float | None, GKGeschlecht, Altersklasse]] = [
+    # U9
+    ("-25", 25, GKGeschlecht.m, Altersklasse.U9), ("-28", 28, GKGeschlecht.m, Altersklasse.U9),
+    ("-32", 32, GKGeschlecht.m, Altersklasse.U9), ("-36", 36, GKGeschlecht.m, Altersklasse.U9),
+    ("-40", 40, GKGeschlecht.m, Altersklasse.U9), ("-45", 45, GKGeschlecht.m, Altersklasse.U9),
+    ("+45", None, GKGeschlecht.m, Altersklasse.U9),
+    ("-25", 25, GKGeschlecht.w, Altersklasse.U9), ("-28", 28, GKGeschlecht.w, Altersklasse.U9),
+    ("-32", 32, GKGeschlecht.w, Altersklasse.U9), ("-36", 36, GKGeschlecht.w, Altersklasse.U9),
+    ("-40", 40, GKGeschlecht.w, Altersklasse.U9), ("-45", 45, GKGeschlecht.w, Altersklasse.U9),
+    ("+45", None, GKGeschlecht.w, Altersklasse.U9),
+    # U11
+    ("-28", 28, GKGeschlecht.m, Altersklasse.U11), ("-31", 31, GKGeschlecht.m, Altersklasse.U11),
+    ("-34", 34, GKGeschlecht.m, Altersklasse.U11), ("-38", 38, GKGeschlecht.m, Altersklasse.U11),
+    ("-42", 42, GKGeschlecht.m, Altersklasse.U11), ("-46", 46, GKGeschlecht.m, Altersklasse.U11),
+    ("+46", None, GKGeschlecht.m, Altersklasse.U11),
+    ("-28", 28, GKGeschlecht.w, Altersklasse.U11), ("-31", 31, GKGeschlecht.w, Altersklasse.U11),
+    ("-34", 34, GKGeschlecht.w, Altersklasse.U11), ("-38", 38, GKGeschlecht.w, Altersklasse.U11),
+    ("-42", 42, GKGeschlecht.w, Altersklasse.U11), ("-46", 46, GKGeschlecht.w, Altersklasse.U11),
+    ("+46", None, GKGeschlecht.w, Altersklasse.U11),
+    # U13 Herren
+    ("-34", 34, GKGeschlecht.m, Altersklasse.U13), ("-38", 38, GKGeschlecht.m, Altersklasse.U13),
+    ("-42", 42, GKGeschlecht.m, Altersklasse.U13), ("-46", 46, GKGeschlecht.m, Altersklasse.U13),
+    ("-50", 50, GKGeschlecht.m, Altersklasse.U13), ("-55", 55, GKGeschlecht.m, Altersklasse.U13),
+    ("-60", 60, GKGeschlecht.m, Altersklasse.U13), ("+60", None, GKGeschlecht.m, Altersklasse.U13),
+    # U13 Damen
+    ("-36", 36, GKGeschlecht.w, Altersklasse.U13), ("-40", 40, GKGeschlecht.w, Altersklasse.U13),
+    ("-44", 44, GKGeschlecht.w, Altersklasse.U13), ("-48", 48, GKGeschlecht.w, Altersklasse.U13),
+    ("-52", 52, GKGeschlecht.w, Altersklasse.U13), ("-57", 57, GKGeschlecht.w, Altersklasse.U13),
+    ("+57", None, GKGeschlecht.w, Altersklasse.U13),
     # Senior Herren
     ("-60", 60, GKGeschlecht.m, Altersklasse.Senior),
     ("-66", 66, GKGeschlecht.m, Altersklasse.Senior),

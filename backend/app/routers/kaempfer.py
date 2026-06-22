@@ -162,16 +162,21 @@ def get_statistik(
         else:
             niederlagen += 1
 
-        technik_name = None
-        if k.sieger_technik_id:
-            from ..models import Technik
-            t = db.get(Technik, k.sieger_technik_id)
-            if t:
-                technik_name = t.name
-        elif k.sieger_technik_frei:
-            technik_name = k.sieger_technik_frei
-        if technik_name:
-            technik_counter[technik_name] += 1
+        hat_gewonnen = (
+            (k.kaempfer_weiss_id == kaempfer_id and k.sieger == Sieger.weiss) or
+            (k.kaempfer_blau_id == kaempfer_id and k.sieger == Sieger.blau)
+        )
+        if hat_gewonnen:
+            technik_name = None
+            if k.sieger_technik_id:
+                from ..models import Technik
+                t = db.get(Technik, k.sieger_technik_id)
+                if t:
+                    technik_name = t.name
+            elif k.sieger_technik_frei:
+                technik_name = k.sieger_technik_frei
+            if technik_name:
+                technik_counter[technik_name] += 1
 
         abschluss_counter[k.abschluss.value] += 1
 
