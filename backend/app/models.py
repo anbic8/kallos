@@ -45,9 +45,9 @@ class Altersklasse(str, enum.Enum):
 
 
 class TechnikKategorie(str, enum.Enum):
-    nage_waza = "nage-waza"
-    katame_waza = "katame-waza"
-    atemi_waza = "atemi-waza"
+    nage_waza = "nage_waza"
+    katame_waza = "katame_waza"
+    atemi_waza = "atemi_waza"
     sonstiges = "sonstiges"
 
 

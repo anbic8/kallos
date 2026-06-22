@@ -72,7 +72,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column(
             "kategorie",
-            sa.Enum("nage-waza", "katame-waza", "atemi-waza", "sonstiges", name="technikkategorie"),
+            sa.Enum("nage_waza", "katame_waza", "atemi_waza", "sonstiges", name="technikkategorie"),
             nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),
