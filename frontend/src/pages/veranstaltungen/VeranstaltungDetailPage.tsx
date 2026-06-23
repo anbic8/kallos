@@ -188,21 +188,22 @@ function StandardSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
     setKaempfe((prev) => prev.filter((x) => x.id !== k.id))
   }
 
-  // Eindeutige Gewichtsklassen, sortiert nach max_kg
+  // Zahlenwert aus Bezeichnung extrahieren ("-66" → 66, "+100" → 100)
+  const kgAus = (bez?: string) => { const m = bez?.match(/\d+/); return m ? parseInt(m[0]) : 999 }
+
+  // Eindeutige Gewichtsklassen, sortiert nach Zahlenwert
   const gewichtsklassen = Array.from(
     new Map(kaempfe.filter((k) => k.gewichtsklasse).map((k) => [k.gewichtsklasse!.id, k.gewichtsklasse!])).values()
-  ).sort((a, b) => (a.max_kg ?? 999) - (b.max_kg ?? 999))
+  ).sort((a, b) => kgAus(a.bezeichnung) - kgAus(b.bezeichnung))
 
   const gefiltert = filterGK
     ? kaempfe.filter((k) => String(k.gewichtsklasse_id) === filterGK)
     : kaempfe
 
-  // Sortiert: Kämpfe mit Gewichtsklasse zuerst, dann nach max_kg
-  const sortiert = [...gefiltert].sort((a, b) => {
-    const aKg = a.gewichtsklasse?.max_kg ?? 999
-    const bKg = b.gewichtsklasse?.max_kg ?? 999
-    return aKg - bKg
-  })
+  // Sortiert nach Gewichtsklassen-Zahlenwert
+  const sortiert = [...gefiltert].sort((a, b) =>
+    kgAus(a.gewichtsklasse?.bezeichnung) - kgAus(b.gewichtsklasse?.bezeichnung)
+  )
 
   return (
     <div className="space-y-3">
