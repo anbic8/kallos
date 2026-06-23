@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, FormEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { fetchKampfById, deleteKampf, createKampfEreignis, deleteKampfEreignis, fetchTechniken, addKampfMedien, deleteKampfMedien } from '../../api/client'
+import { fetchKampfById, deleteKampf, createKampfEreignis, updateKampfEreignis, deleteKampfEreignis, fetchTechniken, addKampfMedien, deleteKampfMedien } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
 import type { Kampf, KampfEreignis, KampfMedien, Technik, EreignisTyp, KaempferFarbe, MedienTyp } from '../../api/types'
 import { ABSCHLUSS_LABEL, KAMPFRUNDE_LABEL, EREIGNISTYP_LABEL, formatKampfzeit, formatZeitpunkt } from '../../api/types'
@@ -22,6 +22,7 @@ export default function KampfDetailPage() {
   const [loading, setLoading] = useState(true)
   const [showEreignisForm, setShowEreignisForm] = useState(false)
   const [savingEreignis, setSavingEreignis] = useState(false)
+  const [editEreignis, setEditEreignis] = useState<KampfEreignis | null>(null)
   const [showMedienForm, setShowMedienForm] = useState(false)
   const [savingMedien, setSavingMedien] = useState(false)
   const [medienModus, setMedienModus] = useState<'upload' | 'url'>('upload')
@@ -89,7 +90,12 @@ export default function KampfDetailPage() {
       notiz: ereignisForm.notiz || null,
     }
     try {
-      await createKampfEreignis(kampf.id, payload)
+      if (editEreignis) {
+        await updateKampfEreignis(kampf.id, editEreignis.id, payload)
+        setEditEreignis(null)
+      } else {
+        await createKampfEreignis(kampf.id, payload)
+      }
       setShowEreignisForm(false)
       setEreignisForm({ zeitpunkt_min: '', zeitpunkt_sek: '', typ: 'waza_ari', farbe: 'weiss', technik_id: '', technik_frei: '', notiz: '' })
       reload()
@@ -102,6 +108,22 @@ export default function KampfDetailPage() {
     if (!kampf) return
     await deleteKampfEreignis(kampf.id, e.id)
     reload()
+  }
+
+  const handleEditEreignis = (e: KampfEreignis) => {
+    const min = e.zeitpunkt_sek != null ? String(Math.floor(e.zeitpunkt_sek / 60)) : ''
+    const sek = e.zeitpunkt_sek != null ? String(e.zeitpunkt_sek % 60) : ''
+    setEreignisForm({
+      zeitpunkt_min: min,
+      zeitpunkt_sek: sek,
+      typ: e.typ,
+      farbe: e.farbe,
+      technik_id: e.technik_id ? String(e.technik_id) : '',
+      technik_frei: e.technik_frei ?? '',
+      notiz: e.notiz ?? '',
+    })
+    setEditEreignis(e)
+    setShowEreignisForm(true)
   }
 
   const handleAddMedien = async (e: FormEvent) => {
@@ -219,7 +241,10 @@ export default function KampfDetailPage() {
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-700">Timeline ({kampf.ereignisse.length})</h2>
           {isTrainer() && (
-            <button onClick={() => setShowEreignisForm(!showEreignisForm)} className="btn-secondary text-sm">
+            <button onClick={() => {
+              if (showEreignisForm) { setShowEreignisForm(false); setEditEreignis(null); setEreignisForm({ zeitpunkt_min: '', zeitpunkt_sek: '', typ: 'waza_ari', farbe: 'weiss', technik_id: '', technik_frei: '', notiz: '' }) }
+              else setShowEreignisForm(true)
+            }} className="btn-secondary text-sm">
               {showEreignisForm ? 'Abbrechen' : '+ Ereignis'}
             </button>
           )}
@@ -266,7 +291,7 @@ export default function KampfDetailPage() {
               </select>
             </div>
             <button type="submit" className="btn-primary w-full" disabled={savingEreignis}>
-              {savingEreignis ? 'Speichern...' : 'Ereignis hinzufügen'}
+              {savingEreignis ? 'Speichern...' : editEreignis ? 'Änderung speichern' : 'Ereignis hinzufügen'}
             </button>
           </form>
         )}
@@ -291,7 +316,10 @@ export default function KampfDetailPage() {
                 {e.notiz && <span className="text-gray-400 text-xs"> ({e.notiz})</span>}
               </span>
               {isTrainer() && (
-                <button onClick={() => handleDeleteEreignis(e)} className="text-red-400 hover:text-red-600 text-xs flex-shrink-0">✕</button>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => handleEditEreignis(e)} className="text-blue-400 hover:text-blue-600 text-xs">✎</button>
+                  <button onClick={() => handleDeleteEreignis(e)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                </div>
               )}
             </div>
           ))}

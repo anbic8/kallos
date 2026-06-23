@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchKaempfer } from '../../api/client'
+import { fetchKaempfer, fetchHeimverein } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
-import type { Kaempfer } from '../../api/types'
+import type { Kaempfer, Verein } from '../../api/types'
 import { GUERTEL_COLOR, GUERTEL_LABEL } from '../../api/types'
 
 export default function KaempferListePage() {
   const { isTrainer } = useAuthStore()
-  const [kaempfer, setKaempfer] = useState<Kaempfer[]>([])
+  const [alleKaempfer, setAlleKaempfer] = useState<Kaempfer[]>([])
+  const [heimverein, setHeimverein] = useState<Verein | null>(null)
   const [intern, setIntern] = useState(true)
   const [suche, setSuche] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetchKaempfer(intern)
-      .then(setKaempfer)
+    Promise.all([fetchKaempfer(), fetchHeimverein()])
+      .then(([k, hv]) => { setAlleKaempfer(k); setHeimverein(hv) })
       .finally(() => setLoading(false))
-  }, [intern])
+  }, [])
+
+  const kaempfer = heimverein
+    ? alleKaempfer.filter((k) => intern ? k.verein_id === heimverein.id : k.verein_id !== heimverein.id)
+    : alleKaempfer.filter((k) => intern ? k.verein_id != null : k.verein_id == null)
 
   const gefiltert = kaempfer.filter((k) => {
     const name = `${k.vorname} ${k.nachname}`.toLowerCase()

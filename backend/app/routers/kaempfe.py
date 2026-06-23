@@ -120,6 +120,24 @@ def add_ereignis(
     return ereignis
 
 
+@router.patch("/{kampf_id}/ereignisse/{ereignis_id}", response_model=KampfEreignisResponse)
+def update_ereignis(
+    kampf_id: int,
+    ereignis_id: int,
+    data: KampfEreignisCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_trainer),
+):
+    e = db.query(KampfEreignis).filter(KampfEreignis.id == ereignis_id, KampfEreignis.kampf_id == kampf_id).first()
+    if not e:
+        raise HTTPException(status_code=404, detail="Ereignis nicht gefunden")
+    for field, value in data.model_dump().items():
+        setattr(e, field, value)
+    db.commit()
+    db.refresh(e)
+    return e
+
+
 @router.delete("/{kampf_id}/ereignisse/{ereignis_id}", status_code=204)
 def delete_ereignis(
     kampf_id: int,

@@ -184,6 +184,11 @@ export const createKampfEreignis = async (kampfId: number, payload: object): Pro
   return data
 }
 
+export const updateKampfEreignis = async (kampfId: number, ereignisId: number, payload: object): Promise<KampfEreignis> => {
+  const { data } = await api.patch<KampfEreignis>(`/kaempfe/${kampfId}/ereignisse/${ereignisId}`, payload)
+  return data
+}
+
 export const deleteKampfEreignis = async (kampfId: number, ereignisId: number): Promise<void> => {
   await api.delete(`/kaempfe/${kampfId}/ereignisse/${ereignisId}`)
 }

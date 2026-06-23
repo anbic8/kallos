@@ -124,10 +124,8 @@ export default function KampfFormPage() {
         navigate(`/kaempfe/${editId}`)
       } else {
         const k = await createKampf(payload)
-        // Ippon/Waza-ari automatisch in Timeline eintragen
-        const autoTyp = k.abschluss === 'ippon' ? 'ippon'
-          : k.abschluss === 'waza_ari' ? 'waza_ari'
-          : null
+        // Nur Ippon automatisch in Timeline eintragen (Waza-ari: Timestamp unbekannt)
+        const autoTyp = k.abschluss === 'ippon' ? 'ippon' : null
         if (autoTyp && k.sieger !== 'unentschieden') {
           await createKampfEreignis(k.id, {
             typ: autoTyp,
