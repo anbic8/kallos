@@ -5,10 +5,24 @@ import { useAuthStore } from '../../store/authStore'
 import type { Kaempfer, IKKZEintrag, Technik, IKKZRichtung, IKKZSituation, KaempferStatistik } from '../../api/types'
 import { IKKZ_RICHTUNG_LABEL, IKKZ_SITUATION_LABEL, IKKZ_PRIORITAET_LABEL } from '../../api/types'
 
-const PRIORITAET_COLOR: Record<number, string> = {
-  1: 'bg-red-100 text-red-700 border-red-200',
-  2: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  3: 'bg-gray-100 text-gray-600 border-gray-200',
+const PRIO_STYLE: Record<number, { border: string; badge: string; icon: string }> = {
+  1: { border: 'border-l-4 border-red-400', badge: 'bg-red-100 text-red-700', icon: '🎯' },
+  2: { border: 'border-l-4 border-yellow-400', badge: 'bg-yellow-100 text-yellow-700', icon: '🔗' },
+  3: { border: 'border-l-4 border-gray-300', badge: 'bg-gray-100 text-gray-600', icon: '🔄' },
+}
+
+const RICHTUNG_BADGE: Record<IKKZRichtung, string> = {
+  rechts: 'bg-blue-100 text-blue-700',
+  links: 'bg-purple-100 text-purple-700',
+  beide: 'bg-green-100 text-green-700',
+}
+
+const SITUATION_BADGE: Record<IKKZSituation, string> = {
+  angriff: 'bg-orange-100 text-orange-700',
+  konter: 'bg-red-100 text-red-700',
+  aufsetzer: 'bg-teal-100 text-teal-700',
+  ne_waza_einstieg: 'bg-indigo-100 text-indigo-700',
+  sonstiges: 'bg-gray-100 text-gray-600',
 }
 
 export default function IKKZPage() {
@@ -44,9 +58,9 @@ export default function IKKZPage() {
       fetchKaempferById(Number(id)),
       fetchIKKZ(Number(id)),
       fetchTechniken(),
-      fetchKaempferStatistik(Number(id)),
+      fetchKaempferStatistik(Number(id)).catch(() => null),
     ])
-      .then(([k, e, t, s]) => { setKaempfer(k); setEintraege(e); setTechniken(t); setStatistik(s) })
+      .then(([k, e, t, s]) => { setKaempfer(k as Kaempfer); setEintraege(e as IKKZEintrag[]); setTechniken(t as Technik[]); setStatistik(s as KaempferStatistik | null) })
       .catch(() => navigate(-1))
       .finally(() => setLoading(false))
   }, [id])
@@ -87,10 +101,6 @@ export default function IKKZPage() {
   if (!kaempfer) return null
 
   const topTechniken = statistik?.techniken.slice(0, 5) ?? []
-  const grouped = [1, 2, 3].map((p) => ({
-    prioritaet: p,
-    eintraege: eintraege.filter((e) => e.prioritaet === p),
-  }))
 
   return (
     <div className="space-y-4">
@@ -113,19 +123,19 @@ export default function IKKZPage() {
 
       {/* Plan vs. Realität */}
       {topTechniken.length > 0 && (
-        <div className="card">
-          <h2 className="font-semibold text-gray-700 mb-2">Tatsächliche Siegtechniken</h2>
-          <div className="space-y-1">
+        <div className="card bg-blue-50 border-blue-200">
+          <p className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Tatsächliche Siegtechniken (Realität)</p>
+          <div className="flex flex-wrap gap-2">
             {topTechniken.map((t, i) => (
-              <div key={t.name} className="flex items-center gap-2 text-sm">
-                <span className="text-gray-400 w-4">{i + 1}.</span>
-                <span className="flex-1">{t.name}</span>
-                <span className="text-gray-500">{t.anzahl}×</span>
-              </div>
+              <span key={t.name} className="text-sm bg-white border border-blue-200 rounded-full px-3 py-0.5">
+                <span className="text-blue-400 text-xs mr-1">{i + 1}.</span>
+                {t.name}
+                <span className="text-blue-600 font-bold ml-1">{t.anzahl}×</span>
+              </span>
             ))}
           </div>
           {eintraege.length > 0 && (
-            <p className="text-xs text-gray-400 mt-2">↑ Vergleich mit dem IKKZ-Plan unten</p>
+            <p className="text-xs text-blue-500 mt-2">↕ Vergleich mit dem Kampfkonzept (Plan) unten</p>
           )}
         </div>
       )}
@@ -134,15 +144,21 @@ export default function IKKZPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-3">
           <h2 className="font-semibold">Neuer IKKZ-Eintrag</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Priorität</label>
-              <select className="input" value={form.prioritaet} onChange={set('prioritaet')}>
-                <option value="1">1 — Tokui-waza (Hauptwaffe)</option>
-                <option value="2">2 — Kombinationspartner</option>
-                <option value="3">3 — Variante</option>
-              </select>
+          <div>
+            <label className="label">Priorität</label>
+            <div className="grid grid-cols-3 gap-2">
+              {([1, 2, 3] as const).map((p) => (
+                <label key={p} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer text-sm transition-colors ${
+                  form.prioritaet === String(p) ? `${PRIO_STYLE[p].badge} border-transparent` : 'border-gray-200'
+                }`}>
+                  <input type="radio" name="prioritaet" value={p} checked={form.prioritaet === String(p)} onChange={set('prioritaet')} className="hidden" />
+                  <span>{PRIO_STYLE[p].icon}</span>
+                  <span className="leading-tight text-xs">{p === 1 ? 'Tokui-waza' : p === 2 ? 'Kombination' : 'Variante'}</span>
+                </label>
+              ))}
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Richtung</label>
               <select className="input" value={form.richtung} onChange={set('richtung')}>
@@ -151,14 +167,14 @@ export default function IKKZPage() {
                 ))}
               </select>
             </div>
-          </div>
-          <div>
-            <label className="label">Situation</label>
-            <select className="input" value={form.situation} onChange={set('situation')}>
-              {(['angriff', 'konter', 'aufsetzer', 'ne_waza_einstieg', 'sonstiges'] as IKKZSituation[]).map((s) => (
-                <option key={s} value={s}>{IKKZ_SITUATION_LABEL[s]}</option>
-              ))}
-            </select>
+            <div>
+              <label className="label">Situation</label>
+              <select className="input" value={form.situation} onChange={set('situation')}>
+                {(['angriff', 'konter', 'aufsetzer', 'ne_waza_einstieg', 'sonstiges'] as IKKZSituation[]).map((s) => (
+                  <option key={s} value={s}>{IKKZ_SITUATION_LABEL[s]}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
@@ -185,7 +201,6 @@ export default function IKKZPage() {
         </form>
       )}
 
-      {/* Einträge nach Priorität */}
       {eintraege.length === 0 && !showForm && (
         <div className="card text-center py-10 text-gray-400">
           <p className="text-3xl mb-2">🎯</p>
@@ -193,34 +208,45 @@ export default function IKKZPage() {
         </div>
       )}
 
-      {grouped.map(({ prioritaet, eintraege: pEintraege }) => pEintraege.length > 0 && (
-        <div key={prioritaet} className="card space-y-2">
-          <h2 className={`text-sm font-semibold px-2 py-1 rounded-lg border inline-block ${PRIORITAET_COLOR[prioritaet]}`}>
-            {IKKZ_PRIORITAET_LABEL[prioritaet]}
-          </h2>
-          <div className="space-y-2">
-            {pEintraege.map((e) => (
-              <div key={e.id} className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm">
-                      {e.technik?.name ?? e.technik_frei ?? '—'}
-                    </span>
-                    <span className="text-xs text-gray-500">{IKKZ_RICHTUNG_LABEL[e.richtung]}</span>
-                    <span className="text-xs px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">
-                      {IKKZ_SITUATION_LABEL[e.situation]}
-                    </span>
+      {/* Einträge nach Priorität */}
+      {([1, 2, 3] as const).map((prio) => {
+        const gruppe = eintraege.filter((e) => e.prioritaet === prio)
+        if (gruppe.length === 0) return null
+        const style = PRIO_STYLE[prio]
+        return (
+          <div key={prio} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{style.icon}</span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${style.badge}`}>
+                {IKKZ_PRIORITAET_LABEL[prio]}
+              </span>
+            </div>
+            {gruppe.map((e) => (
+              <div key={e.id} className={`bg-white rounded-xl shadow-sm border border-gray-200 p-3 pl-4 ${style.border}`}>
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-base">
+                      {e.technik?.name ?? e.technik_frei ?? <span className="text-gray-400 italic">Keine Technik</span>}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${RICHTUNG_BADGE[e.richtung]}`}>
+                        {IKKZ_RICHTUNG_LABEL[e.richtung]}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SITUATION_BADGE[e.situation]}`}>
+                        {IKKZ_SITUATION_LABEL[e.situation]}
+                      </span>
+                    </div>
+                    {e.notizen && <p className="text-xs text-gray-500 mt-1.5 italic">{e.notizen}</p>}
                   </div>
-                  {e.notizen && <p className="text-xs text-gray-400 mt-1">{e.notizen}</p>}
+                  {isTrainer() && (
+                    <button onClick={() => handleDelete(e)} className="text-red-300 hover:text-red-500 text-sm flex-shrink-0">✕</button>
+                  )}
                 </div>
-                {isTrainer() && (
-                  <button onClick={() => handleDelete(e)} className="text-red-400 hover:text-red-600 text-xs flex-shrink-0">✕</button>
-                )}
               </div>
             ))}
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

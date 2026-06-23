@@ -175,8 +175,8 @@ function KampftagSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
 
 function StandardSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
   const { isTrainer } = useAuthStore()
-  const navigate = useNavigate()
   const [kaempfe, setKaempfe] = useState<Kampf[]>([])
+  const [filterGK, setFilterGK] = useState('')
 
   useEffect(() => {
     fetchKaempfe({ veranstaltung_id: veranstaltung.id }).then(setKaempfe).catch(() => {})
@@ -188,22 +188,56 @@ function StandardSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
     setKaempfe((prev) => prev.filter((x) => x.id !== k.id))
   }
 
+  // Eindeutige Gewichtsklassen, sortiert nach max_kg
+  const gewichtsklassen = Array.from(
+    new Map(kaempfe.filter((k) => k.gewichtsklasse).map((k) => [k.gewichtsklasse!.id, k.gewichtsklasse!])).values()
+  ).sort((a, b) => (a.max_kg ?? 999) - (b.max_kg ?? 999))
+
+  const gefiltert = filterGK
+    ? kaempfe.filter((k) => String(k.gewichtsklasse_id) === filterGK)
+    : kaempfe
+
+  // Sortiert: Kämpfe mit Gewichtsklasse zuerst, dann nach max_kg
+  const sortiert = [...gefiltert].sort((a, b) => {
+    const aKg = a.gewichtsklasse?.max_kg ?? 999
+    const bKg = b.gewichtsklasse?.max_kg ?? 999
+    return aKg - bKg
+  })
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-gray-700">Kämpfe ({kaempfe.length})</h2>
         {isTrainer() && (
-          <Link to={`/veranstaltungen/${veranstaltung.id}/kaempfe/neu`} className="btn-primary text-sm">+ Kampf erfassen</Link>
+          <Link to={`/veranstaltungen/${veranstaltung.id}/kaempfe/neu`} className="btn-primary text-sm">+ Kampf</Link>
         )}
       </div>
-      {kaempfe.length === 0 && (
+
+      {/* Gewichtsklassen-Filter */}
+      {gewichtsklassen.length > 1 && (
+        <div className="flex gap-1.5 flex-wrap">
+          <button onClick={() => setFilterGK('')}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${!filterGK ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+            Alle ({kaempfe.length})
+          </button>
+          {gewichtsklassen.map((gk) => (
+            <button key={gk.id} onClick={() => setFilterGK(String(gk.id))}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${filterGK === String(gk.id) ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+              {gk.bezeichnung}
+              <span className="ml-1 opacity-60">({kaempfe.filter((k) => k.gewichtsklasse_id === gk.id).length})</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {sortiert.length === 0 && (
         <div className="card text-center py-10 text-gray-400 text-sm">
           <p className="text-3xl mb-2">🥊</p>
           <p>Noch keine Kämpfe erfasst.</p>
         </div>
       )}
       <div className="space-y-2">
-        {kaempfe.map((k) => (
+        {sortiert.map((k) => (
           <div key={k.id} className="card flex items-start gap-2">
             <Link to={`/kaempfe/${k.id}`} className="flex-1 min-w-0">
               <div className="flex items-center gap-1 flex-wrap">
@@ -215,7 +249,7 @@ function StandardSection({ veranstaltung }: { veranstaltung: Veranstaltung }) {
                 <SiegerBadge sieger={k.sieger} />
                 <span className="text-xs text-gray-500">{ABSCHLUSS_LABEL[k.abschluss]}</span>
                 {k.sieger_technik && <span className="text-xs text-gray-500">{k.sieger_technik.name}</span>}
-                {k.gewichtsklasse && <span className="text-xs text-gray-400">{k.gewichtsklasse.bezeichnung}</span>}
+                {k.gewichtsklasse && <span className="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 rounded">{k.gewichtsklasse.bezeichnung}</span>}
                 {k.runde && <span className="text-xs text-gray-400">{KAMPFRUNDE_LABEL[k.runde]}</span>}
                 {k.kampfzeit_sek != null && <span className="text-xs text-gray-400">{formatKampfzeit(k.kampfzeit_sek)}</span>}
               </div>

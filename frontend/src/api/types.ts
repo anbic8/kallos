@@ -180,7 +180,7 @@ export const IKKZ_RICHTUNG_LABEL: Record<IKKZRichtung, string> = {
 export const IKKZ_SITUATION_LABEL: Record<IKKZSituation, string> = {
   angriff: 'Angriff',
   konter: 'Konter',
-  aufsetzer: 'Aufsetzer',
+  aufsetzer: 'Falltechnik (Aufsetzer)',
   ne_waza_einstieg: 'Ne-waza-Einstieg',
   sonstiges: 'Sonstiges',
 }

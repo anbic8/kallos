@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById } from '../../api/client'
+import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById, createKampfEreignis } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
 import type { Kaempfer, Veranstaltung, Gewichtsklasse, Technik, KampfRunde, Sieger, Abschluss } from '../../api/types'
 import { KAMPFRUNDE_LABEL, ABSCHLUSS_LABEL } from '../../api/types'
@@ -124,6 +124,19 @@ export default function KampfFormPage() {
         navigate(`/kaempfe/${editId}`)
       } else {
         const k = await createKampf(payload)
+        // Ippon/Waza-ari automatisch in Timeline eintragen
+        const autoTyp = k.abschluss === 'ippon' ? 'ippon'
+          : k.abschluss === 'waza_ari' ? 'waza_ari'
+          : null
+        if (autoTyp && k.sieger !== 'unentschieden') {
+          await createKampfEreignis(k.id, {
+            typ: autoTyp,
+            farbe: k.sieger,
+            zeitpunkt_sek: k.kampfzeit_sek ?? null,
+            technik_id: k.sieger_technik_id ?? null,
+            technik_frei: k.sieger_technik_frei ?? null,
+          }).catch(() => {})
+        }
         navigate(`/kaempfe/${k.id}`)
       }
     } catch (err: any) {

@@ -13,6 +13,14 @@ def list_vereine(db: Session = Depends(get_db), _: User = Depends(get_current_us
     return db.query(Verein).all()
 
 
+@router.get("/heimverein", response_model=VereinResponse)
+def get_heimverein(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    v = db.query(Verein).order_by(Verein.id).first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Kein Verein gefunden")
+    return v
+
+
 @router.post("", response_model=VereinResponse, status_code=201)
 def create_verein(data: VereinCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     verein = Verein(**data.model_dump())

@@ -75,6 +75,18 @@ export default function LeistungstestPage() {
   const testtypen = [...new Set(tests.map((t) => t.testtyp))].sort()
   const gefiltert = filterTyp ? tests.filter((t) => t.testtyp === filterTyp) : tests
 
+  // Pro Testtyp: letzter Wert + Trend
+  const typUebersicht = testtypen.map((typ) => {
+    const reihe = tests.filter((t) => t.testtyp === typ && t.messwert_zahl != null)
+    const letzter = reihe[0]
+    const vorletzter = reihe[1]
+    const trend = vorletzter && letzter
+      ? letzter.messwert_zahl! > vorletzter.messwert_zahl! ? '↑'
+        : letzter.messwert_zahl! < vorletzter.messwert_zahl! ? '↓' : '='
+      : ''
+    return { typ, letzter, vorletzter, trend, anzahl: tests.filter((t) => t.testtyp === typ).length }
+  })
+
   // Verlauf pro Testtyp (nur numerische Werte, letzten 8)
   const verlaufTyp = filterTyp || (testtypen.length === 1 ? testtypen[0] : '')
   const verlauf = verlaufTyp
@@ -137,6 +149,35 @@ export default function LeistungstestPage() {
           </div>
           <button type="submit" className="btn-primary w-full" disabled={saving}>{saving ? 'Speichern...' : 'Speichern'}</button>
         </form>
+      )}
+
+      {/* Testtypen-Übersicht */}
+      {typUebersicht.length > 0 && (
+        <div className="card">
+          <h2 className="font-semibold text-gray-700 mb-3 text-sm">Übersicht nach Testtyp</h2>
+          <div className="space-y-2">
+            {typUebersicht.map(({ typ, letzter, trend, anzahl }) => (
+              <button key={typ} onClick={() => setFilterTyp(filterTyp === typ ? '' : typ)}
+                className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors text-left ${filterTyp === typ ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'}`}>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{typ}</p>
+                  <p className="text-xs text-gray-400">{anzahl} Messungen</p>
+                </div>
+                {letzter?.messwert_zahl != null && (
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-blue-700">{letzter.messwert_zahl}{letzter.einheit ? ` ${letzter.einheit}` : ''}</p>
+                    <p className="text-xs text-gray-400">{new Date(letzter.datum).toLocaleDateString('de-DE')}</p>
+                  </div>
+                )}
+                {trend && (
+                  <span className={`text-lg font-bold flex-shrink-0 ${trend === '↑' ? 'text-green-500' : trend === '↓' ? 'text-red-400' : 'text-gray-400'}`}>
+                    {trend}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {testtypen.length > 1 && (

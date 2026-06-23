@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchKaempfer, fetchVeranstaltungen, fetchKaempfe } from '../api/client'
+import { fetchKaempfer, fetchVeranstaltungen, fetchKaempfe, fetchHeimverein } from '../api/client'
 import { useAuthStore } from '../store/authStore'
-import type { Kaempfer, Veranstaltung } from '../api/types'
+import type { Kaempfer, Veranstaltung, Verein } from '../api/types'
 import { GUERTEL_COLOR, GUERTEL_LABEL, VERANSTALTUNGSTYP_LABEL } from '../api/types'
 
 export default function DashboardPage() {
   const { user, isTrainer } = useAuthStore()
   const [kaempfer, setKaempfer] = useState<Kaempfer[]>([])
+  const [heimverein, setHeimverein] = useState<Verein | null>(null)
   const [veranstaltungen, setVeranstaltungen] = useState<Veranstaltung[]>([])
   const [kaempfeCount, setKaempfeCount] = useState(0)
   const [scoutingCount, setScoutingCount] = useState(0)
@@ -15,14 +16,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     Promise.all([
-      fetchKaempfer(true),
+      fetchKaempfer(),
+      fetchHeimverein(),
       fetchVeranstaltungen(),
       isTrainer() ? fetchKaempfe() : Promise.resolve([]),
       isTrainer() ? fetchKaempfe({ is_scouting: true }) : Promise.resolve([]),
     ])
-      .then(([k, v, kf, sc]) => {
-        setKaempfer(k)
-        setVeranstaltungen(v.filter((v) => !v.parent_liga_id).slice(0, 5))
+      .then(([alle, hv, v, kf, sc]) => {
+        setHeimverein(hv)
+        setKaempfer((alle as Kaempfer[]).filter((k) => k.verein_id === hv.id))
+        setVeranstaltungen((v as Veranstaltung[]).filter((v) => !v.parent_liga_id).slice(0, 5))
         setKaempfeCount((kf as any[]).length)
         setScoutingCount((sc as any[]).length)
       })

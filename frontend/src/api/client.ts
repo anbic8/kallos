@@ -61,6 +61,11 @@ export const fetchVereine = async (): Promise<Verein[]> => {
   return data
 }
 
+export const fetchHeimverein = async (): Promise<Verein> => {
+  const { data } = await api.get<Verein>('/vereine/heimverein')
+  return data
+}
+
 export const createVerein = async (payload: Omit<Verein, 'id'>): Promise<Verein> => {
   const { data } = await api.post<Verein>('/vereine', payload)
   return data
