@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { fetchKaempfer, fetchKaempferStatistik } from '../../api/client'
-import type { Kaempfer, KaempferStatistik } from '../../api/types'
-import { ABSCHLUSS_LABEL, GUERTEL_LABEL } from '../../api/types'
+import { Link } from 'react-router-dom'
+import { fetchKaempfer, fetchKaempferStatistik, fetchKaempfe } from '../../api/client'
+import type { Kaempfer, KaempferStatistik, Kampf } from '../../api/types'
+import { ABSCHLUSS_LABEL, GUERTEL_LABEL, formatKampfzeit } from '../../api/types'
 
 function StatCell({ a, b, label }: { a: number; b: number; label: string }) {
   const aWins = a > b
@@ -27,6 +28,7 @@ export default function VergleichPage() {
   const [idB, setIdB] = useState('')
   const [statA, setStatA] = useState<KaempferStatistik | null>(null)
   const [statB, setStatB] = useState<KaempferStatistik | null>(null)
+  const [direktkaempfe, setDirektkaempfe] = useState<Kampf[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -37,12 +39,17 @@ export default function VergleichPage() {
     if (!idA || !idB) return
     setLoading(true)
     try {
-      const [a, b] = await Promise.all([
+      const [a, b, kaempfeA] = await Promise.all([
         fetchKaempferStatistik(Number(idA)),
         fetchKaempferStatistik(Number(idB)),
+        fetchKaempfe({ kaempfer_id: Number(idA) }),
       ])
       setStatA(a)
       setStatB(b)
+      setDirektkaempfe(kaempfeA.filter((k) =>
+        (k.kaempfer_weiss_id === Number(idA) && k.kaempfer_blau_id === Number(idB)) ||
+        (k.kaempfer_weiss_id === Number(idB) && k.kaempfer_blau_id === Number(idA))
+      ))
     } finally {
       setLoading(false)
     }
@@ -110,6 +117,69 @@ export default function VergleichPage() {
               )}
             </div>
           </div>
+
+          {/* Direkte Kämpfe */}
+          {direktkaempfe.length > 0 && (() => {
+            const siegeA = direktkaempfe.filter((k) => {
+              const istWeiss = k.kaempfer_weiss_id === Number(idA)
+              return (istWeiss && k.sieger === 'weiss') || (!istWeiss && k.sieger === 'blau')
+            }).length
+            const siegeB = direktkaempfe.filter((k) => {
+              const istWeiss = k.kaempfer_weiss_id === Number(idB)
+              return (istWeiss && k.sieger === 'weiss') || (!istWeiss && k.sieger === 'blau')
+            }).length
+            const unentschieden = direktkaempfe.filter((k) => k.sieger === 'unentschieden').length
+            return (
+              <div className="card border-2 border-blue-200 bg-blue-50 space-y-3">
+                <h2 className="font-semibold text-blue-800 text-sm text-center">
+                  ⚔️ Direkte Kämpfe ({direktkaempfe.length})
+                </h2>
+                {/* Bilanz */}
+                <div className="grid grid-cols-3 text-center">
+                  <div>
+                    <p className={`text-2xl font-bold ${siegeA > siegeB ? 'text-green-600' : 'text-gray-700'}`}>{siegeA}</p>
+                    <p className="text-xs text-gray-500">Siege {kaempferA?.vorname}</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-400">{unentschieden}</p>
+                    <p className="text-xs text-gray-500">Unentsch.</p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${siegeB > siegeA ? 'text-green-600' : 'text-gray-700'}`}>{siegeB}</p>
+                    <p className="text-xs text-gray-500">Siege {kaempferB?.vorname}</p>
+                  </div>
+                </div>
+                {/* Einzelne Kämpfe */}
+                <div className="space-y-1.5">
+                  {direktkaempfe.map((k) => {
+                    const aIstWeiss = k.kaempfer_weiss_id === Number(idA)
+                    const aGewonnen = (aIstWeiss && k.sieger === 'weiss') || (!aIstWeiss && k.sieger === 'blau')
+                    const bGewonnen = (!aIstWeiss && k.sieger === 'weiss') || (aIstWeiss && k.sieger === 'blau')
+                    return (
+                      <Link key={k.id} to={`/kaempfe/${k.id}`}
+                        className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 text-sm hover:border-blue-300 border border-transparent transition-colors">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                          aGewonnen ? 'bg-green-100 text-green-700' : bGewonnen ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {aGewonnen ? 'S' : bGewonnen ? 'N' : '='}
+                        </span>
+                        <span className="flex-1 truncate text-gray-700">
+                          {ABSCHLUSS_LABEL[k.abschluss]}
+                          {k.sieger_technik && ` · ${k.sieger_technik.name}`}
+                          {k.sieger_technik_frei && ` · ${k.sieger_technik_frei}`}
+                        </span>
+                        <span className="text-gray-400 text-xs flex-shrink-0">
+                          {k.gewichtsklasse?.bezeichnung ?? ''}
+                          {k.kampfzeit_sek != null ? ` · ${formatKampfzeit(k.kampfzeit_sek)}` : ''}
+                        </span>
+                        <span className="text-gray-300">›</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Statistik */}
           <div className="card">
