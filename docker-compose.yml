@@ -41,6 +41,8 @@ services:
     build: ./frontend
     ports:
       - "8002:80"
+    volumes:
+      - media_data:/app/media:ro
     depends_on:
       backend:
         condition: service_healthy

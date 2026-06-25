@@ -32,10 +32,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="bg-white rounded-2xl px-6 py-4 inline-flex items-center justify-center mb-2">
-            <img src="/logo.png" alt="Logo" className="h-16 w-auto" />
-          </div>
-          <p className="text-gray-400 mt-3">Kampfstatistiken & Coaching</p>
+          <img src="/logo.png" alt="Logo" className="h-20 w-auto mb-2" />
+          <p className="text-gray-400 mt-2">Kampfstatistiken & Coaching</p>
         </div>
 
         <form onSubmit={handleSubmit} className="card space-y-4 shadow-2xl">

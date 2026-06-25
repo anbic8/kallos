@@ -23,11 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Top-Navbar */}
       <header className="bg-gray-900 border-b border-gray-800 text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-6">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="bg-white rounded-lg px-2 py-1 flex items-center">
-              <img src="/logo.png" alt="Logo" className="h-7 w-auto" />
-            </div>
-          </div>
+          <img src="/logo.png" alt="Logo" className="h-8 w-auto flex-shrink-0" />
 
           {/* Desktop-Nav */}
           <nav className="hidden sm:flex items-center gap-1 flex-1">
