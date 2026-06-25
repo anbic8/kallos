@@ -1,8 +1,8 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById, createKampfEreignis } from '../../api/client'
+import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById, createKampfEreignis, createKaempfer, fetchVereine } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
-import type { Kaempfer, Veranstaltung, Gewichtsklasse, Technik, KampfRunde, Sieger, Abschluss } from '../../api/types'
+import type { Kaempfer, Veranstaltung, Gewichtsklasse, Technik, KampfRunde, Sieger, Abschluss, Verein } from '../../api/types'
 import { KAMPFRUNDE_LABEL, ABSCHLUSS_LABEL } from '../../api/types'
 
 const RUNDEN: KampfRunde[] = ['vorrunde', 'gruppenphase', 'viertelfinale', 'halbfinale', 'finale', 'direktkampf', 'sonstiges']
@@ -24,6 +24,10 @@ export default function KampfFormPage() {
   const [veranstaltungen, setVeranstaltungen] = useState<Veranstaltung[]>([])
   const [gewichtsklassen, setGewichtsklassen] = useState<Gewichtsklasse[]>([])
   const [techniken, setTechniken] = useState<Technik[]>([])
+  const [vereine, setVereine] = useState<Verein[]>([])
+  const [quickAdd, setQuickAdd] = useState<'weiss' | 'blau' | null>(null)
+  const [quickForm, setQuickForm] = useState({ vorname: '', nachname: '', verein_id: '' })
+  const [savingQuick, setSavingQuick] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -52,11 +56,13 @@ export default function KampfFormPage() {
       fetchVeranstaltungen(),
       fetchGewichtsklassen(),
       fetchTechniken(),
-    ]).then(([k, v, g, t]) => {
+      fetchVereine(),
+    ]).then(([k, v, g, t, ve]) => {
       setKaempfer(k)
       setVeranstaltungen(v)
       setGewichtsklassen(g)
       setTechniken(t)
+      setVereine(ve)
     }).finally(() => setLoading(false))
   }, [])
 
@@ -84,6 +90,24 @@ export default function KampfFormPage() {
       })
     }
   }, [isEdit, editId, loading])
+
+  const handleQuickAdd = async () => {
+    if (!quickForm.vorname || !quickForm.nachname || !quickAdd) return
+    setSavingQuick(true)
+    try {
+      const k = await createKaempfer({
+        vorname: quickForm.vorname,
+        nachname: quickForm.nachname,
+        verein_id: quickForm.verein_id ? Number(quickForm.verein_id) : undefined,
+      })
+      setKaempfer((prev) => [...prev, k])
+      setForm((f) => ({ ...f, [quickAdd === 'weiss' ? 'kaempfer_weiss_id' : 'kaempfer_blau_id']: String(k.id) }))
+      setQuickAdd(null)
+      setQuickForm({ vorname: '', nachname: '', verein_id: '' })
+    } finally {
+      setSavingQuick(false)
+    }
+  }
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -156,28 +180,49 @@ export default function KampfFormPage() {
         {/* Kämpfer */}
         <div className="card space-y-3">
           <h2 className="font-semibold text-gray-700">Kämpfer</h2>
-          <div>
-            <label className="label">⬜ Weiss (erstgenannt) *</label>
-            <select className="input" value={form.kaempfer_weiss_id} onChange={set('kaempfer_weiss_id')} required>
-              <option value="">-- wählen --</option>
-              {kaempfer.map((k) => (
-                <option key={k.id} value={k.id}>{kaempferName(k)}</option>
-              ))}
-            </select>
-          </div>
+          {(['weiss', 'blau'] as const).map((farbe) => {
+            const label = farbe === 'weiss' ? '⬜ Weiss (erstgenannt)' : '🟦 Blau (zweitgenannt)'
+            const field = farbe === 'weiss' ? 'kaempfer_weiss_id' : 'kaempfer_blau_id'
+            return (
+              <div key={farbe}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="label mb-0">{label} *</label>
+                  <button type="button" onClick={() => setQuickAdd(quickAdd === farbe ? null : farbe)}
+                    className="text-xs text-blue-600 hover:underline">
+                    {quickAdd === farbe ? 'Abbrechen' : '+ Neu anlegen'}
+                  </button>
+                </div>
+                <select className="input" value={form[field]} onChange={set(field)} required>
+                  <option value="">-- wählen --</option>
+                  {kaempfer.map((k) => (
+                    <option key={k.id} value={k.id}>{kaempferName(k)}</option>
+                  ))}
+                </select>
+                {quickAdd === farbe && (
+                  <div className="mt-2 bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+                    <p className="text-xs font-medium text-blue-700">Neuen Kämpfer anlegen</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input className="input text-sm" placeholder="Vorname *" value={quickForm.vorname}
+                        onChange={(e) => setQuickForm((f) => ({ ...f, vorname: e.target.value }))} />
+                      <input className="input text-sm" placeholder="Nachname *" value={quickForm.nachname}
+                        onChange={(e) => setQuickForm((f) => ({ ...f, nachname: e.target.value }))} />
+                    </div>
+                    <select className="input text-sm" value={quickForm.verein_id}
+                      onChange={(e) => setQuickForm((f) => ({ ...f, verein_id: e.target.value }))}>
+                      <option value="">-- Kein Verein (extern) --</option>
+                      {vereine.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                    </select>
+                    <button type="button" onClick={handleQuickAdd} disabled={savingQuick || !quickForm.vorname || !quickForm.nachname}
+                      className="btn-primary w-full text-sm">
+                      {savingQuick ? 'Anlegen...' : 'Anlegen & auswählen'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
           <div className="flex justify-center">
-            <button type="button" onClick={swap} className="btn-secondary text-xs px-3 py-1">
-              ⇅ tauschen
-            </button>
-          </div>
-          <div>
-            <label className="label">🟦 Blau (zweitgenannt) *</label>
-            <select className="input" value={form.kaempfer_blau_id} onChange={set('kaempfer_blau_id')} required>
-              <option value="">-- wählen --</option>
-              {kaempfer.map((k) => (
-                <option key={k.id} value={k.id}>{kaempferName(k)}</option>
-              ))}
-            </select>
+            <button type="button" onClick={swap} className="btn-secondary text-xs px-3 py-1">⇅ tauschen</button>
           </div>
         </div>
 

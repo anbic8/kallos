@@ -28,6 +28,8 @@ export default function KampfDetailPage() {
   const [medienModus, setMedienModus] = useState<'upload' | 'url'>('upload')
   const [medienForm, setMedienForm] = useState({ typ: 'foto' as MedienTyp, externe_url: '', timestamp_sek: '', beschriftung: '' })
   const medienFileRef = useRef<HTMLInputElement>(null)
+  const [syncModus, setSyncModus] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const videoRefs = useRef<Record<number, HTMLVideoElement>>({})
 
   const seekVideo = (medienId: number, sek: number) => {
@@ -102,6 +104,30 @@ export default function KampfDetailPage() {
     } finally {
       setSavingEreignis(false)
     }
+  }
+
+  const syncEreignisVideo = async (e: KampfEreignis) => {
+    if (!kampf) return
+    const videoId = kampf.medien.find((m) => m.typ === 'video' && m.datei_pfad)?.id
+    if (!videoId) return
+    const v = videoRefs.current[videoId]
+    if (!v) return
+    const sek = Math.floor(v.currentTime)
+    await updateKampfEreignis(kampf.id, e.id, {
+      zeitpunkt_sek: e.zeitpunkt_sek ?? null,
+      typ: e.typ, farbe: e.farbe,
+      technik_id: e.technik_id ?? null,
+      technik_frei: e.technik_frei ?? null,
+      notiz: e.notiz ?? null,
+      video_timestamp_sek: sek,
+    })
+    reload()
+  }
+
+  const seekEreignisVideo = (sek: number) => {
+    const videoId = kampf?.medien.find((m) => m.typ === 'video' && m.datei_pfad)?.id
+    if (!videoId) return
+    seekVideo(videoId, sek)
   }
 
   const handleDeleteEreignis = async (e: KampfEreignis) => {
@@ -238,16 +264,30 @@ export default function KampfDetailPage() {
 
       {/* Timeline */}
       <div className="card space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold text-gray-700">Timeline ({kampf.ereignisse.length})</h2>
-          {isTrainer() && (
-            <button onClick={() => {
-              if (showEreignisForm) { setShowEreignisForm(false); setEditEreignis(null); setEreignisForm({ zeitpunkt_min: '', zeitpunkt_sek: '', typ: 'waza_ari', farbe: 'weiss', technik_id: '', technik_frei: '', notiz: '' }) }
-              else setShowEreignisForm(true)
-            }} className="btn-secondary text-sm">
-              {showEreignisForm ? 'Abbrechen' : '+ Ereignis'}
-            </button>
+          <div className="flex gap-2">
+            {isTrainer() && kampf.medien.some((m) => m.typ === 'video' && m.datei_pfad) && (
+              <button onClick={() => setSyncModus(!syncModus)}
+                className={`text-sm px-3 py-1 rounded-lg border transition-colors ${syncModus ? 'bg-orange-500 text-white border-orange-500' : 'border-gray-300 text-gray-600'}`}>
+                {syncModus ? '🔴 Sync aktiv' : '🎬 Video-Sync'}
+              </button>
+            )}
+            {isTrainer() && (
+              <button onClick={() => {
+                if (showEreignisForm) { setShowEreignisForm(false); setEditEreignis(null); setEreignisForm({ zeitpunkt_min: '', zeitpunkt_sek: '', typ: 'waza_ari', farbe: 'weiss', technik_id: '', technik_frei: '', notiz: '' }) }
+                else setShowEreignisForm(true)
+              }} className="btn-secondary text-sm">
+                {showEreignisForm ? 'Abbrechen' : '+ Ereignis'}
+              </button>
+            )}
+          </div>
+          {syncModus && (
+            <p className="w-full text-xs text-orange-600 bg-orange-50 rounded-lg px-3 py-1.5">
+              ▶ Video abspielen → beim richtigen Moment 📍 klicken um den Zeitstempel zu setzen
+            </p>
           )}
+        </div>
         </div>
 
         {showEreignisForm && (
@@ -315,12 +355,26 @@ export default function KampfDetailPage() {
                 {e.technik_frei && <span className="text-gray-500"> · {e.technik_frei}</span>}
                 {e.notiz && <span className="text-gray-400 text-xs"> ({e.notiz})</span>}
               </span>
-              {isTrainer() && (
-                <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => handleEditEreignis(e)} className="text-blue-400 hover:text-blue-600 text-xs">✎</button>
-                  <button onClick={() => handleDeleteEreignis(e)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
-                </div>
-              )}
+              <div className="flex gap-1 flex-shrink-0 items-center">
+                {e.video_timestamp_sek != null && !syncModus && (
+                  <button onClick={() => seekEreignisVideo(e.video_timestamp_sek!)}
+                    className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    ▶ {formatZeitpunkt(e.video_timestamp_sek)}
+                  </button>
+                )}
+                {isTrainer() && syncModus && (
+                  <button onClick={() => syncEreignisVideo(e)}
+                    className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 hover:bg-orange-200">
+                    📍 Sync
+                  </button>
+                )}
+                {isTrainer() && !syncModus && (
+                  <>
+                    <button onClick={() => handleEditEreignis(e)} className="text-blue-400 hover:text-blue-600 text-xs">✎</button>
+                    <button onClick={() => handleDeleteEreignis(e)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -402,11 +456,18 @@ export default function KampfDetailPage() {
               </div>
 
               {/* Foto */}
-              {m.typ === 'foto' && (m.datei_pfad || m.externe_url) && (
-                <a href={m.datei_pfad ?? m.externe_url} target="_blank" rel="noopener noreferrer">
-                  <img src={m.datei_pfad ?? m.externe_url} alt={m.beschriftung ?? ''} className="rounded-lg max-h-64 object-cover w-full" />
-                </a>
-              )}
+              {m.typ === 'foto' && (m.datei_pfad || m.externe_url) && (() => {
+                const fotos = kampf.medien.filter((x) => x.typ === 'foto' && (x.datei_pfad || x.externe_url))
+                const idx = fotos.findIndex((x) => x.id === m.id)
+                return (
+                  <img
+                    src={m.datei_pfad ?? m.externe_url ?? ''}
+                    alt={m.beschriftung ?? ''}
+                    className="rounded-lg max-h-64 object-cover w-full cursor-pointer"
+                    onClick={() => setLightboxIndex(idx)}
+                  />
+                )
+              })()}
 
               {/* Video: hochgeladen */}
               {m.typ === 'video' && m.datei_pfad && (
@@ -449,6 +510,38 @@ export default function KampfDetailPage() {
           Kampf löschen
         </button>
       )}
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (() => {
+        const fotos = kampf.medien.filter((m) => m.typ === 'foto' && (m.datei_pfad || m.externe_url))
+        const foto = fotos[lightboxIndex]
+        if (!foto) return null
+        return (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+            onClick={() => setLightboxIndex(null)}>
+            <button className="absolute top-4 right-4 text-white text-3xl leading-none">✕</button>
+            {lightboxIndex > 0 && (
+              <button className="absolute left-4 text-white text-4xl leading-none"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}>‹</button>
+            )}
+            <img
+              src={foto.datei_pfad ?? foto.externe_url ?? ''}
+              alt={foto.beschriftung ?? ''}
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {lightboxIndex < fotos.length - 1 && (
+              <button className="absolute right-4 text-white text-4xl leading-none"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}>›</button>
+            )}
+            {foto.beschriftung && (
+              <p className="absolute bottom-4 text-white text-sm bg-black/50 px-4 py-2 rounded-lg">
+                {foto.beschriftung} ({lightboxIndex + 1}/{fotos.length})
+              </p>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

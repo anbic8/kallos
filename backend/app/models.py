@@ -364,6 +364,7 @@ class KampfEreignis(Base):
     technik_id: Mapped[Optional[int]] = mapped_column(ForeignKey("techniken.id"), nullable=True)
     technik_frei: Mapped[Optional[str]] = mapped_column(String(255))
     notiz: Mapped[Optional[str]] = mapped_column(Text)
+    video_timestamp_sek: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     kampf: Mapped["Kampf"] = relationship("Kampf", back_populates="ereignisse")
     technik: Mapped[Optional["Technik"]] = relationship("Technik")

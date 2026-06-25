@@ -84,6 +84,7 @@ export interface KampfEreignis {
   technik_id?: number
   technik_frei?: string
   notiz?: string
+  video_timestamp_sek?: number
   technik?: { id: number; name: string }
 }
 

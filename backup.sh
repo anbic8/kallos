@@ -32,6 +32,10 @@ ls -t "$BACKUP_DIR"/media_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm
 
 echo "[JudoApp Backup] Fertig."
 
+# Automatischer Cron-Job (taeglich 02:00):
+#   crontab -e
+#   0 2 * * * /opt/judoapp/backup.sh /opt/backup/judoapp >> /var/log/judoapp-backup.log 2>&1
+
 # Wiederherstellung:
 #   docker compose exec -T db psql -U judoapp judoapp < db_DATUM.sql
 #   docker run --rm -v judoapp_media_data:/data -v /pfad:/backup alpine \

@@ -213,6 +213,7 @@ class KampfEreignisCreate(BaseModel):
     technik_id: Optional[int] = None
     technik_frei: Optional[str] = None
     notiz: Optional[str] = None
+    video_timestamp_sek: Optional[int] = None
 
 
 class KampfEreignisResponse(BaseModel):
@@ -224,6 +225,7 @@ class KampfEreignisResponse(BaseModel):
     technik_id: Optional[int] = None
     technik_frei: Optional[str] = None
     notiz: Optional[str] = None
+    video_timestamp_sek: Optional[int] = None
     technik: Optional[TechnikKurzResponse] = None
     model_config = {"from_attributes": True}
 
