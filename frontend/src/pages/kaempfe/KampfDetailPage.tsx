@@ -35,7 +35,7 @@ export default function KampfDetailPage() {
   const seekVideo = (medienId: number, sek: number) => {
     const v = videoRefs.current[medienId]
     if (!v) return
-    const doSeek = () => { v.currentTime = sek; v.play().catch(() => {}) }
+    const doSeek = () => { v.currentTime = sek }
     if (v.readyState >= 1) {
       doSeek()
     } else {
@@ -441,12 +441,37 @@ export default function KampfDetailPage() {
           <p className="text-sm text-gray-400 text-center py-4">Keine Medien vorhanden.</p>
         )}
 
+        {/* Foto-Thumbnails */}
+        {kampf.medien.some((m) => m.typ === 'foto' && (m.datei_pfad || m.externe_url)) && (
+          <div className="flex flex-wrap gap-2">
+            {kampf.medien
+              .filter((m) => m.typ === 'foto' && (m.datei_pfad || m.externe_url))
+              .map((m, idx) => (
+                <div key={m.id} className="relative group">
+                  <img
+                    src={m.datei_pfad ?? m.externe_url ?? ''}
+                    alt={m.beschriftung ?? ''}
+                    className="w-20 h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors"
+                    onClick={() => setLightboxIndex(idx)}
+                    title={m.beschriftung ?? ''}
+                  />
+                  {isTrainer() && (
+                    <button onClick={() => handleDeleteMedien(m)}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs items-center justify-center hidden group-hover:flex">
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+
         <div className="space-y-4">
-          {kampf.medien.map((m) => (
+          {kampf.medien.filter((m) => m.typ === 'video').map((m) => (
             <div key={m.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">
-                  {m.typ === 'foto' ? '📷' : '🎥'} {m.beschriftung || (m.typ === 'foto' ? 'Foto' : 'Video')}
+                  🎥 {m.beschriftung || 'Video'}
                   {m.timestamp_sek != null && <span className="text-gray-400 ml-1">· {formatZeitpunkt(m.timestamp_sek)}</span>}
                 </span>
                 {isTrainer() && (
@@ -454,22 +479,8 @@ export default function KampfDetailPage() {
                 )}
               </div>
 
-              {/* Foto */}
-              {m.typ === 'foto' && (m.datei_pfad || m.externe_url) && (() => {
-                const fotos = kampf.medien.filter((x) => x.typ === 'foto' && (x.datei_pfad || x.externe_url))
-                const idx = fotos.findIndex((x) => x.id === m.id)
-                return (
-                  <img
-                    src={m.datei_pfad ?? m.externe_url ?? ''}
-                    alt={m.beschriftung ?? ''}
-                    className="rounded-lg max-h-64 object-cover w-full cursor-pointer"
-                    onClick={() => setLightboxIndex(idx)}
-                  />
-                )
-              })()}
-
               {/* Video: hochgeladen */}
-              {m.typ === 'video' && m.datei_pfad && (
+              {m.datei_pfad && (
                 <video
                   ref={(el) => { if (el) videoRefs.current[m.id] = el }}
                   src={m.datei_pfad} controls className="w-full rounded-lg max-h-64"
@@ -477,7 +488,7 @@ export default function KampfDetailPage() {
               )}
 
               {/* Video: YouTube */}
-              {m.typ === 'video' && m.externe_url && isYoutube(m.externe_url) && (
+              {m.externe_url && isYoutube(m.externe_url) && (
                 <div className="aspect-video">
                   <iframe
                     src={m.externe_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/') + (m.timestamp_sek ? `?start=${m.timestamp_sek}` : '')}
@@ -487,14 +498,14 @@ export default function KampfDetailPage() {
               )}
 
               {/* Video: andere externe URL */}
-              {m.typ === 'video' && m.externe_url && !isYoutube(m.externe_url) && (
+              {m.externe_url && !isYoutube(m.externe_url) && (
                 <a href={m.externe_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
                   🔗 Video öffnen
                 </a>
               )}
 
               {/* Timestamp-Sprung für hochgeladene Videos */}
-              {m.typ === 'video' && m.datei_pfad && m.timestamp_sek != null && (
+              {m.datei_pfad && m.timestamp_sek != null && (
                 <button onClick={() => seekVideo(m.id, m.timestamp_sek!)} className="btn-secondary text-xs">
                   ▶ Springe zu {formatZeitpunkt(m.timestamp_sek)}
                 </button>
