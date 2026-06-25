@@ -22,6 +22,9 @@ import IKKZPage from './pages/ikkz/IKKZPage'
 import LeistungstestPage from './pages/leistungstests/LeistungstestPage'
 import VergleichPage from './pages/vergleich/VergleichPage'
 import ScoutingPage from './pages/scouting/ScoutingPage'
+import RanglistePage from './pages/rangliste/RanglistePage'
+import GuertelPage from './pages/rangliste/GuertelPage'
+import AdminPage from './pages/admin/AdminPage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -61,6 +64,9 @@ export default function App() {
                   <Route path="/kaempfer/:id/leistungstests" element={<LeistungstestPage />} />
                   <Route path="/vergleich" element={<VergleichPage />} />
                   <Route path="/scouting" element={<ScoutingPage />} />
+                  <Route path="/rangliste" element={<RanglistePage />} />
+                  <Route path="/guertel" element={<GuertelPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

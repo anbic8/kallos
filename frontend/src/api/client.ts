@@ -272,6 +272,11 @@ export const fetchKampftage = async (ligaId: number): Promise<Veranstaltung[]> =
   return data
 }
 
+export const fetchRangliste = async (kriterium = 'siege', minKaempfe = 0): Promise<any[]> => {
+  const { data } = await api.get('/rangliste', { params: { kriterium, min_kaempfe: minKaempfe } })
+  return data
+}
+
 // ---------- Medien ----------
 
 export const addKampfMedien = async (kampfId: number, formData: FormData): Promise<KampfMedien> => {

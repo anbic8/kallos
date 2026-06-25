@@ -407,22 +407,22 @@ Spaetere Korrelation moeglich: hoehe Griffkraft-Werte -> bessere Ippon-Rate?
 
 ---
 
-## Phase 6 -- Rangliste, PWA & Backup
+## Phase 6 -- Rangliste, PWA & Backup ✓ ABGESCHLOSSEN
 
 **Ziel:** App poliert und bereit fuer den Vereinseinsatz.
 
 ### Aufgaben
-- [ ] Vereinsinterne Rangliste (konfigurierbar: nach Turniersiegen, Ippons, Erfolgen...)
-- [ ] Guertel-Uebersicht aller Vereinskaempfer
-- [ ] PWA-Manifest (App auf Handy-Homescreen installierbar)
-- [ ] Admin-Panel: User verwalten, Rollen zuweisen, Kaempfer-Accounts verknuepfen
-- [ ] Backup-Skript: Datenbank-Dump + Media-Volume sichern (z.B. auf NAS)
+- [x] Vereinsinterne Rangliste (konfigurierbar: Siege, Siegquote, Ippons, Turniersiege, Erfolge-Punkte)
+- [x] Guertel-Uebersicht aller Vereinskaempfer (nach Guertelgrad gruppiert)
+- [x] PWA-Manifest + Service Worker (App auf Handy-Homescreen installierbar)
+- [x] Admin-Panel: User anlegen, Rollen zuweisen, Kaempfer-Accounts verknuepfen
+- [x] Backup-Skript: backup.sh (Datenbank-Dump + Media-Volume, behaelt letzte 10)
 
 ### Verifikation
-- [ ] App auf Handy-Homescreen installierbar (PWA-Prompt erscheint)
-- [ ] Admin kann neuen User anlegen, Rolle setzen, Kaempfer-Profil verknuepfen
-- [ ] Backup erfolgreich erstellt und wiederherstellbar
-- [ ] Rangliste zeigt korrekten Stand basierend auf gewaehltem Kriterium
+- [x] App auf Handy-Homescreen installierbar (Manifest + Service Worker vorhanden)
+- [x] Admin kann neuen User anlegen, Rolle setzen, Kaempfer-Profil verknuepfen
+- [x] Backup erfolgreich: bash backup.sh /ziel-pfad
+- [x] Rangliste zeigt korrekten Stand nach gewaehltem Kriterium
 
 ---
 

@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { fetchKaempfer, fetchVeranstaltungen, fetchKaempfe, fetchHeimverein } from '../api/client'
 import { useAuthStore } from '../store/authStore'
 import type { Kaempfer, Veranstaltung, Verein } from '../api/types'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { GUERTEL_COLOR, GUERTEL_LABEL, VERANSTALTUNGSTYP_LABEL } from '../api/types'
 
 export default function DashboardPage() {
-  const { user, isTrainer } = useAuthStore()
+  const { user, isTrainer, isAdmin } = useAuthStore()
   const [kaempfer, setKaempfer] = useState<Kaempfer[]>([])
   const [heimverein, setHeimverein] = useState<Verein | null>(null)
   const [veranstaltungen, setVeranstaltungen] = useState<Veranstaltung[]>([])
@@ -79,6 +80,16 @@ export default function DashboardPage() {
             <span className="text-2xl">🔍</span>
             <span className="font-medium">Scouting</span>
           </Link>
+          <Link to="/guertel" className="card flex flex-col items-center gap-1.5 py-4 hover:border-blue-300 transition-colors text-center text-sm">
+            <span className="text-2xl">🥋</span>
+            <span className="font-medium">Gürtel</span>
+          </Link>
+          {isAdmin() && (
+            <Link to="/admin" className="card flex flex-col items-center gap-1.5 py-4 hover:border-red-200 border-red-100 transition-colors text-center text-sm">
+              <span className="text-2xl">⚙️</span>
+              <span className="font-medium text-red-600">Admin</span>
+            </Link>
+          )}
         </div>
       )}
 
