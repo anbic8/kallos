@@ -35,12 +35,7 @@ export default function KampfDetailPage() {
   const seekVideo = (medienId: number, sek: number) => {
     const v = videoRefs.current[medienId]
     if (!v) return
-    v.pause()
-    if (v.readyState >= 1) {
-      v.currentTime = sek
-    } else {
-      v.addEventListener('loadedmetadata', () => { v.currentTime = sek }, { once: true })
-    }
+    v.currentTime = sek
     v.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
