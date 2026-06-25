@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchKaempfe, fetchKaempfer } from '../../api/client'
-import type { Kampf, Kaempfer } from '../../api/types'
+import { fetchKaempfe, fetchKaempfer, fetchHeimverein } from '../../api/client'
+import type { Kampf, Kaempfer, Verein } from '../../api/types'
 import { ABSCHLUSS_LABEL, VERANSTALTUNGSTYP_LABEL } from '../../api/types'
 
 export default function ScoutingPage() {
@@ -13,9 +13,14 @@ export default function ScoutingPage() {
   useEffect(() => {
     Promise.all([
       fetchKaempfe({ is_scouting: true }),
-      fetchKaempfer(false),
+      fetchKaempfer(),
+      fetchHeimverein(),
     ])
-      .then(([k, g]) => { setKaempfe(k); setGegner(g) })
+      .then(([k, alle, hv]) => {
+        setKaempfe(k)
+        // Alle Kämpfer die NICHT vom Heimverein sind (andere Vereine oder kein Verein)
+        setGegner((alle as Kaempfer[]).filter((x) => x.verein_id !== (hv as Verein).id))
+      })
       .finally(() => setLoading(false))
   }, [])
 

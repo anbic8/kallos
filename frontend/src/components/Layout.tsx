@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top-Navbar */}
-      <header className="bg-blue-800 text-white shadow-md">
+      <header className="bg-gray-900 border-b border-gray-800 text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-6">
           <span className="font-bold text-lg tracking-wide flex-shrink-0">JudoApp</span>
 
@@ -34,7 +34,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   key={to}
                   to={to}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    active ? 'bg-blue-700 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'
+                    active ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                   }`}
                 >
                   <span>{icon}</span>
@@ -54,12 +54,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Inhalt */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 min-h-screen">
         {children}
       </main>
 
       {/* Bottom-Nav (mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex sm:hidden z-10">
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex sm:hidden z-10">
         {NAV.map(({ to, label, icon }) => {
           const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to))
           return (
@@ -67,7 +67,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               key={to}
               to={to}
               className={`flex-1 flex flex-col items-center py-2 text-xs transition-colors ${
-                active ? 'text-blue-700 font-semibold' : 'text-gray-500'
+                active ? 'text-blue-400 font-semibold' : 'text-gray-500'
               }`}
             >
               <span className="text-xl">{icon}</span>

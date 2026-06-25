@@ -3,31 +3,72 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+  html {
+    color-scheme: dark;
   }
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+  }
+  /* Select-Optionen im dunklen Kontext */
+  option {
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+  /* Scrollbar dezent */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #111827; }
+  ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium
+           transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1
+           focus:ring-offset-gray-950 disabled:opacity-40 cursor-pointer;
   }
   .btn-primary {
-    @apply btn bg-blue-700 text-white hover:bg-blue-800 focus:ring-blue-600;
+    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
   }
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-600;
+    @apply btn bg-gray-800 text-gray-200 border border-gray-700
+           hover:bg-gray-700 focus:ring-blue-500;
   }
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    @apply btn bg-red-700 text-white hover:bg-red-800 focus:ring-red-500;
   }
   .input {
-    @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500;
+    @apply block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm
+           text-gray-100 shadow-sm placeholder-gray-500
+           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500;
   }
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium text-gray-400 mb-1;
   }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-4;
+    @apply bg-gray-900 rounded-xl shadow-sm border border-gray-800 p-4;
   }
+}
+
+/* Globale Overrides fuer harte Tailwind-Klassen in Komponenten */
+@layer utilities {
+  .bg-white          { background-color: #111827 !important; }   /* gray-900 */
+  .bg-gray-50        { background-color: #111827 !important; }
+  .bg-gray-100       { background-color: #1f2937 !important; }   /* gray-800 */
+  .bg-gray-200       { background-color: #374151 !important; }   /* gray-700 */
+  .text-gray-900     { color: #f9fafb !important; }              /* gray-50 */
+  .text-gray-800     { color: #e5e7eb !important; }              /* gray-200 */
+  .text-gray-700     { color: #d1d5db !important; }              /* gray-300 */
+  .text-gray-600     { color: #9ca3af !important; }              /* gray-400 */
+  .border-gray-100   { border-color: #1f2937 !important; }       /* gray-800 */
+  .border-gray-200   { border-color: #374151 !important; }       /* gray-700 */
+  .border-gray-300   { border-color: #4b5563 !important; }       /* gray-600 */
+  /* Farbige Hintergründe abdunkeln */
+  .bg-blue-50        { background-color: #172554 !important; }   /* blue-950 */
+  .bg-green-50       { background-color: #052e16 !important; }   /* green-950 */
+  .bg-red-50         { background-color: #450a0a !important; }   /* red-950 */
+  .bg-yellow-50      { background-color: #422006 !important; }   /* amber-950 */
+  .bg-orange-50      { background-color: #431407 !important; }   /* orange-950 */
+  .bg-purple-50      { background-color: #2e1065 !important; }   /* purple-950 */
+  .bg-teal-50        { background-color: #042f2e !important; }
+  .bg-indigo-50      { background-color: #1e1b4b !important; }
 }

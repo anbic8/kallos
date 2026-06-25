@@ -29,15 +29,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🥋</div>
           <h1 className="text-3xl font-bold text-white">JudoApp</h1>
-          <p className="text-blue-200 mt-1">Kampfstatistiken & Coaching</p>
+          <p className="text-gray-400 mt-1">Kampfstatistiken & Coaching</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="card space-y-4 shadow-2xl">
           <div>
             <label className="label">E-Mail</label>
             <input
@@ -61,7 +61,7 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
           </div>
-          {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+          {error && <p className="text-sm text-red-400 bg-red-950 rounded-lg px-3 py-2">{error}</p>}
           <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
             {loading ? 'Anmelden...' : 'Anmelden'}
           </button>

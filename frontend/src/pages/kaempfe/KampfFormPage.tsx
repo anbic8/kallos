@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById, createKampfEreignis, createKaempfer, fetchVereine } from '../../api/client'
+import { fetchKaempfer, fetchVeranstaltungen, fetchGewichtsklassen, fetchTechniken, createKampf, updateKampf, fetchKampfById, createKampfEreignis, createKaempfer, fetchVereine, createVerein } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
 import type { Kaempfer, Veranstaltung, Gewichtsklasse, Technik, KampfRunde, Sieger, Abschluss, Verein } from '../../api/types'
 import { KAMPFRUNDE_LABEL, ABSCHLUSS_LABEL } from '../../api/types'
@@ -28,6 +28,9 @@ export default function KampfFormPage() {
   const [quickAdd, setQuickAdd] = useState<'weiss' | 'blau' | null>(null)
   const [quickForm, setQuickForm] = useState({ vorname: '', nachname: '', verein_id: '' })
   const [savingQuick, setSavingQuick] = useState(false)
+  const [showNewVerein, setShowNewVerein] = useState(false)
+  const [newVereinName, setNewVereinName] = useState('')
+  const [savingVerein, setSavingVerein] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -90,6 +93,18 @@ export default function KampfFormPage() {
       })
     }
   }, [isEdit, editId, loading])
+
+  const handleNewVerein = async () => {
+    if (!newVereinName.trim()) return
+    setSavingVerein(true)
+    try {
+      const v = await createVerein({ name: newVereinName.trim() })
+      setVereine((prev) => [...prev, v])
+      setQuickForm((f) => ({ ...f, verein_id: String(v.id) }))
+      setNewVereinName('')
+      setShowNewVerein(false)
+    } finally { setSavingVerein(false) }
+  }
 
   const handleQuickAdd = async () => {
     if (!quickForm.vorname || !quickForm.nachname || !quickAdd) return
@@ -207,11 +222,27 @@ export default function KampfFormPage() {
                       <input className="input text-sm" placeholder="Nachname *" value={quickForm.nachname}
                         onChange={(e) => setQuickForm((f) => ({ ...f, nachname: e.target.value }))} />
                     </div>
-                    <select className="input text-sm" value={quickForm.verein_id}
-                      onChange={(e) => setQuickForm((f) => ({ ...f, verein_id: e.target.value }))}>
-                      <option value="">-- Kein Verein (extern) --</option>
-                      {vereine.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-                    </select>
+                    <div className="flex gap-2">
+                      <select className="input flex-1 text-sm" value={quickForm.verein_id}
+                        onChange={(e) => setQuickForm((f) => ({ ...f, verein_id: e.target.value }))}>
+                        <option value="">-- Kein Verein (extern) --</option>
+                        {vereine.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                      </select>
+                      <button type="button" onClick={() => setShowNewVerein(!showNewVerein)}
+                        className="btn-secondary text-xs px-2 flex-shrink-0">
+                        {showNewVerein ? '✕' : '+ Verein'}
+                      </button>
+                    </div>
+                    {showNewVerein && (
+                      <div className="flex gap-2">
+                        <input className="input flex-1 text-sm" placeholder="Vereinsname"
+                          value={newVereinName} onChange={(e) => setNewVereinName(e.target.value)} />
+                        <button type="button" onClick={handleNewVerein} disabled={savingVerein || !newVereinName.trim()}
+                          className="btn-primary text-xs px-3 flex-shrink-0">
+                          {savingVerein ? '...' : 'Anlegen'}
+                        </button>
+                      </div>
+                    )}
                     <button type="button" onClick={handleQuickAdd} disabled={savingQuick || !quickForm.vorname || !quickForm.nachname}
                       className="btn-primary w-full text-sm">
                       {savingQuick ? 'Anlegen...' : 'Anlegen & auswählen'}
