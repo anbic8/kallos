@@ -67,6 +67,32 @@ class VereinResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ---------- Gruppe ----------
+
+class GruppeCreate(BaseModel):
+    name: str
+    beschreibung: Optional[str] = None
+
+
+class GruppeUpdate(BaseModel):
+    name: Optional[str] = None
+    beschreibung: Optional[str] = None
+
+
+class GruppeKurzResponse(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
+class GruppeResponse(BaseModel):
+    id: int
+    name: str
+    beschreibung: Optional[str] = None
+    mitglieder_anzahl: int = 0
+    model_config = {"from_attributes": True}
+
+
 # ---------- Kaempfer ----------
 
 class KaempferCreate(BaseModel):
@@ -114,6 +140,7 @@ class KaempferResponse(BaseModel):
     foto_url: Optional[str] = None
     notizen: Optional[str] = None
     verein: Optional[VereinResponse] = None
+    gruppen: list[GruppeKurzResponse] = []
     model_config = {"from_attributes": True}
 
 

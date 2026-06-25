@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchRangliste } from '../../api/client'
-import { GUERTEL_COLOR, GUERTEL_LABEL, type Guertel } from '../../api/types'
+import { fetchRangliste, fetchGruppen } from '../../api/client'
+import { GUERTEL_COLOR, GUERTEL_LABEL, type Guertel, type Gruppe } from '../../api/types'
 
 const KRITERIEN = [
   { key: 'siege', label: 'Siege gesamt' },
@@ -16,17 +16,21 @@ const RANG_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 export default function RanglistePage() {
   const [kriterium, setKriterium] = useState('siege')
   const [minKaempfe, setMinKaempfe] = useState(0)
+  const [filterGruppe, setFilterGruppe] = useState<number | undefined>()
+  const [gruppen, setGruppen] = useState<Gruppe[]>([])
   const [rangliste, setRangliste] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  useEffect(() => { fetchGruppen().then(setGruppen).catch(() => {}) }, [])
+
   const laden = () => {
     setLoading(true)
-    fetchRangliste(kriterium, minKaempfe)
+    fetchRangliste(kriterium, minKaempfe, filterGruppe)
       .then(setRangliste)
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { laden() }, [kriterium, minKaempfe])
+  useEffect(() => { laden() }, [kriterium, minKaempfe, filterGruppe])
 
   const wertLabel = (r: any) => {
     if (kriterium === 'siegquote') return `${r.siegquote} %`
@@ -50,12 +54,27 @@ export default function RanglistePage() {
         ))}
       </div>
 
-      <div className="flex items-center gap-3 text-sm">
+      <div className="flex items-center gap-3 text-sm flex-wrap">
         <label className="text-gray-500">Mindest-Kämpfe:</label>
         <select className="input w-20 text-sm py-1" value={minKaempfe} onChange={(e) => setMinKaempfe(Number(e.target.value))}>
           {[0, 1, 3, 5, 10].map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
+
+      {gruppen.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          <button onClick={() => setFilterGruppe(undefined)}
+            className={`text-xs px-3 py-1 rounded-full border ${!filterGruppe ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+            Alle
+          </button>
+          {gruppen.map((g) => (
+            <button key={g.id} onClick={() => setFilterGruppe(filterGruppe === g.id ? undefined : g.id)}
+              className={`text-xs px-3 py-1 rounded-full border ${filterGruppe === g.id ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-20 text-gray-400">Laden...</div>

@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchKaempfer, fetchHeimverein } from '../../api/client'
+import { fetchKaempfer, fetchHeimverein, fetchGruppen } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
-import type { Kaempfer, Verein } from '../../api/types'
+import type { Kaempfer, Verein, Gruppe } from '../../api/types'
 import { GUERTEL_COLOR, GUERTEL_LABEL } from '../../api/types'
 
 export default function KaempferListePage() {
   const { isTrainer } = useAuthStore()
   const [alleKaempfer, setAlleKaempfer] = useState<Kaempfer[]>([])
   const [heimverein, setHeimverein] = useState<Verein | null>(null)
+  const [gruppen, setGruppen] = useState<Gruppe[]>([])
   const [intern, setIntern] = useState(true)
+  const [filterGruppe, setFilterGruppe] = useState<number | null>(null)
   const [suche, setSuche] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([fetchKaempfer(), fetchHeimverein()])
-      .then(([k, hv]) => { setAlleKaempfer(k); setHeimverein(hv) })
+    Promise.all([fetchKaempfer(), fetchHeimverein(), fetchGruppen()])
+      .then(([k, hv, g]) => { setAlleKaempfer(k); setHeimverein(hv); setGruppen(g) })
       .finally(() => setLoading(false))
   }, [])
 
@@ -26,7 +28,9 @@ export default function KaempferListePage() {
 
   const gefiltert = kaempfer.filter((k) => {
     const name = `${k.vorname} ${k.nachname}`.toLowerCase()
-    return name.includes(suche.toLowerCase())
+    const matchSuche = name.includes(suche.toLowerCase())
+    const matchGruppe = !filterGruppe || k.gruppen?.some((g) => g.id === filterGruppe)
+    return matchSuche && matchGruppe
   })
 
   return (
@@ -59,13 +63,24 @@ export default function KaempferListePage() {
       </div>
 
       {/* Suche */}
-      <input
-        type="search"
-        className="input"
-        placeholder="Name suchen..."
-        value={suche}
-        onChange={(e) => setSuche(e.target.value)}
-      />
+      <input type="search" className="input" placeholder="Name suchen..."
+        value={suche} onChange={(e) => setSuche(e.target.value)} />
+
+      {/* Gruppen-Filter (nur intern) */}
+      {intern && gruppen.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          <button onClick={() => setFilterGruppe(null)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${!filterGruppe ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+            Alle
+          </button>
+          {gruppen.map((g) => (
+            <button key={g.id} onClick={() => setFilterGruppe(filterGruppe === g.id ? null : g.id)}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${filterGruppe === g.id ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Liste */}
       {loading ? (

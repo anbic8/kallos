@@ -73,8 +73,10 @@ export const createVerein = async (payload: Omit<Verein, 'id'>): Promise<Verein>
 
 // ---------- Kaempfer ----------
 
-export const fetchKaempfer = async (intern?: boolean): Promise<Kaempfer[]> => {
-  const params = intern != null ? { intern } : {}
+export const fetchKaempfer = async (intern?: boolean, gruppeId?: number): Promise<Kaempfer[]> => {
+  const params: Record<string, unknown> = {}
+  if (intern != null) params.intern = intern
+  if (gruppeId != null) params.gruppe_id = gruppeId
   const { data } = await api.get<Kaempfer[]>('/kaempfer', { params })
   return data
 }
@@ -272,9 +274,38 @@ export const fetchKampftage = async (ligaId: number): Promise<Veranstaltung[]> =
   return data
 }
 
-export const fetchRangliste = async (kriterium = 'siege', minKaempfe = 0): Promise<any[]> => {
-  const { data } = await api.get('/rangliste', { params: { kriterium, min_kaempfe: minKaempfe } })
+export const fetchRangliste = async (kriterium = 'siege', minKaempfe = 0, gruppeId?: number): Promise<any[]> => {
+  const { data } = await api.get('/rangliste', { params: { kriterium, min_kaempfe: minKaempfe, ...(gruppeId ? { gruppe_id: gruppeId } : {}) } })
   return data
+}
+
+// ---------- Gruppen ----------
+
+export const fetchGruppen = async (): Promise<import('./types').Gruppe[]> => {
+  const { data } = await api.get('/gruppen')
+  return data
+}
+
+export const createGruppe = async (payload: { name: string; beschreibung?: string }): Promise<import('./types').Gruppe> => {
+  const { data } = await api.post('/gruppen', payload)
+  return data
+}
+
+export const updateGruppe = async (id: number, payload: Partial<{ name: string; beschreibung: string }>): Promise<import('./types').Gruppe> => {
+  const { data } = await api.patch(`/gruppen/${id}`, payload)
+  return data
+}
+
+export const deleteGruppe = async (id: number): Promise<void> => {
+  await api.delete(`/gruppen/${id}`)
+}
+
+export const addMitglied = async (gruppeId: number, kaempferId: number): Promise<void> => {
+  await api.post(`/gruppen/${gruppeId}/mitglieder/${kaempferId}`)
+}
+
+export const removeMitglied = async (gruppeId: number, kaempferId: number): Promise<void> => {
+  await api.delete(`/gruppen/${gruppeId}/mitglieder/${kaempferId}`)
 }
 
 // ---------- Medien ----------

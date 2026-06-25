@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
+from typing import Optional
 from ..models import User, Kaempfer, Verein, Kampf, Erfolg, Sieger, Abschluss
 from ..deps import get_current_user
 
@@ -11,14 +12,19 @@ router = APIRouter(prefix="/api/rangliste", tags=["rangliste"])
 def get_rangliste(
     kriterium: str = "siege",
     min_kaempfe: int = 0,
+    gruppe_id: Optional[int] = None,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    from ..models import Gruppe
     heimverein = db.query(Verein).order_by(Verein.id).first()
     if not heimverein:
         return []
 
-    kaempfer = db.query(Kaempfer).filter(Kaempfer.verein_id == heimverein.id).all()
+    q = db.query(Kaempfer).filter(Kaempfer.verein_id == heimverein.id)
+    if gruppe_id:
+        q = q.filter(Kaempfer.gruppen.any(Gruppe.id == gruppe_id))
+    kaempfer = q.all()
     kaempfer_ids = {k.id for k in kaempfer}
 
     kaempfe = db.query(Kampf).filter(

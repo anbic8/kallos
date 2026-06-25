@@ -1,9 +1,17 @@
 import enum
 from datetime import datetime, date, time
 from typing import Optional
-from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum, Boolean, Date, Time
+from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum, Boolean, Date, Time, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
+
+# Assoziationstabelle Kaempfer <-> Gruppen (many-to-many)
+kaempfer_gruppen = Table(
+    "kaempfer_gruppen",
+    Base.metadata,
+    Column("kaempfer_id", Integer, ForeignKey("kaempfer.id"), primary_key=True),
+    Column("gruppe_id", Integer, ForeignKey("gruppen.id"), primary_key=True),
+)
 
 
 # ---------- Enums ----------
@@ -167,6 +175,18 @@ class Verein(Base):
     kaempfer: Mapped[list["Kaempfer"]] = relationship("Kaempfer", back_populates="verein")
 
 
+class Gruppe(Base):
+    __tablename__ = "gruppen"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    beschreibung: Mapped[Optional[str]] = mapped_column(String(500))
+
+    mitglieder: Mapped[list["Kaempfer"]] = relationship(
+        "Kaempfer", secondary="kaempfer_gruppen", back_populates="gruppen"
+    )
+
+
 class Kaempfer(Base):
     __tablename__ = "kaempfer"
 
@@ -183,6 +203,9 @@ class Kaempfer(Base):
 
     user: Mapped[Optional[User]] = relationship("User", back_populates="kaempfer")
     verein: Mapped[Optional[Verein]] = relationship("Verein", back_populates="kaempfer")
+    gruppen: Mapped[list["Gruppe"]] = relationship(
+        "Gruppe", secondary="kaempfer_gruppen", back_populates="mitglieder"
+    )
 
 
 class Gewichtsklasse(Base):

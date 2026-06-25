@@ -38,6 +38,7 @@ export interface Kaempfer {
   foto_url?: string
   notizen?: string
   verein?: Verein
+  gruppen?: { id: number; name: string }[]
 }
 
 export interface Gewichtsklasse {
@@ -195,6 +196,13 @@ export const IKKZ_PRIORITAET_LABEL: Record<number, string> = {
   1: 'Tokui-waza (Hauptwaffe)',
   2: 'Kombinationspartner',
   3: 'Variante',
+}
+
+export interface Gruppe {
+  id: number
+  name: string
+  beschreibung?: string
+  mitglieder_anzahl: number
 }
 
 export type KampflosSeite = 'heim' | 'gast'

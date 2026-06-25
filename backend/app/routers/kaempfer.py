@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
-from ..models import User, Kaempfer, UserRolle, Kampf, Sieger, KampfEreignis, EreignisTyp
+from ..models import User, Kaempfer, UserRolle, Kampf, Sieger, KampfEreignis, EreignisTyp, Gruppe
 from ..schemas import KaempferCreate, KaempferUpdate, KaempferResponse, KaempferStatistik, TechnikStatistik, AbschlussStatistik, KampfstrukturAnalyse, ScoringZeitpunkt
 from ..deps import get_current_user, require_trainer
 from ..config import settings
@@ -19,22 +19,25 @@ MAX_FOTO_MB = 10
 @router.get("", response_model=list[KaempferResponse])
 def list_kaempfer(
     intern: Optional[bool] = None,
+    gruppe_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    q = db.query(Kaempfer).options(joinedload(Kaempfer.verein))
+    q = db.query(Kaempfer).options(joinedload(Kaempfer.verein), joinedload(Kaempfer.gruppen))
     if current_user.rolle == UserRolle.athlet:
         q = q.filter(Kaempfer.user_id == current_user.id)
     elif intern is True:
         q = q.filter(Kaempfer.verein_id.isnot(None))
     elif intern is False:
         q = q.filter(Kaempfer.verein_id.is_(None))
+    if gruppe_id:
+        q = q.filter(Kaempfer.gruppen.any(Gruppe.id == gruppe_id))
     return q.order_by(Kaempfer.nachname, Kaempfer.vorname).all()
 
 
 def _kaempfer_or_403(kaempfer_id: int, current_user: User, db: Session) -> Kaempfer:
     """Gibt Kaempfer zurueck; Athlet darf nur sein eigenes Profil sehen/bearbeiten."""
-    k = db.query(Kaempfer).options(joinedload(Kaempfer.verein)).filter(Kaempfer.id == kaempfer_id).first()
+    k = db.query(Kaempfer).options(joinedload(Kaempfer.verein), joinedload(Kaempfer.gruppen)).filter(Kaempfer.id == kaempfer_id).first()
     if not k:
         raise HTTPException(status_code=404, detail="Kämpfer nicht gefunden")
     if current_user.rolle == UserRolle.athlet and k.user_id != current_user.id:
