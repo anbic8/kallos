@@ -35,8 +35,13 @@ export default function KampfDetailPage() {
   const seekVideo = (medienId: number, sek: number) => {
     const v = videoRefs.current[medienId]
     if (!v) return
-    v.currentTime = sek
-    v.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    v.pause()
+    if (v.readyState >= 1) {
+      v.currentTime = sek
+    } else {
+      v.addEventListener('loadedmetadata', () => { v.currentTime = sek }, { once: true })
+    }
+    v.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be')
@@ -478,7 +483,10 @@ export default function KampfDetailPage() {
               {m.datei_pfad && (
                 <video
                   ref={(el) => { if (el) videoRefs.current[m.id] = el }}
-                  src={m.datei_pfad} controls className="w-full rounded-lg max-h-64"
+                  src={m.datei_pfad}
+                  controls
+                  preload="metadata"
+                  className="w-full rounded-lg max-h-64"
                 />
               )}
 
