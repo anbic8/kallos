@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { fetchKaempferById, fetchIKKZ, createIKKZ, deleteIKKZ, fetchTechniken, fetchKaempferStatistik } from '../../api/client'
 import { useAuthStore } from '../../store/authStore'
-import type { Kaempfer, IKKZEintrag, Technik, IKKZRichtung, IKKZSituation, KaempferStatistik } from '../../api/types'
+import type { Kaempfer, IKKZEintrag, Technik, IKKZRichtung, IKKZSituation, HauptwaffePosition, KaempferStatistik } from '../../api/types'
 import { IKKZ_RICHTUNG_LABEL, IKKZ_SITUATION_LABEL, IKKZ_PRIORITAET_LABEL } from '../../api/types'
 
 const PRIO_STYLE: Record<number, { border: string; badge: string; icon: string }> = {
@@ -44,8 +44,12 @@ export default function IKKZPage() {
     situation: 'angriff' as IKKZSituation,
     technik_id: '',
     technik_frei: '',
+    kombinations_technik_id: '',
+    kombinations_technik_frei: '',
+    hauptwaffe_position: '' as HauptwaffePosition | '',
     notizen: '',
   })
+  const [kombiFreitext, setKombiFreitext] = useState(false)
 
   const reload = () => {
     if (!id) return
@@ -79,10 +83,14 @@ export default function IKKZPage() {
         situation: form.situation,
         technik_id: (!technikFreitext && form.technik_id) ? Number(form.technik_id) : null,
         technik_frei: (technikFreitext && form.technik_frei) ? form.technik_frei : null,
+        kombinations_technik_id: (!kombiFreitext && form.kombinations_technik_id) ? Number(form.kombinations_technik_id) : null,
+        kombinations_technik_frei: (kombiFreitext && form.kombinations_technik_frei) ? form.kombinations_technik_frei : null,
+        hauptwaffe_position: form.hauptwaffe_position || null,
         notizen: form.notizen || null,
       })
       setShowForm(false)
-      setForm({ prioritaet: '1', richtung: 'rechts', situation: 'angriff', technik_id: '', technik_frei: '', notizen: '' })
+      setForm({ prioritaet: '1', richtung: 'rechts', situation: 'angriff', technik_id: '', technik_frei: '', kombinations_technik_id: '', kombinations_technik_frei: '', hauptwaffe_position: '', notizen: '' })
+      setKombiFreitext(false)
       reload()
     } catch (err: any) {
       alert(err.response?.data?.detail ?? 'Fehler')
@@ -191,6 +199,46 @@ export default function IKKZPage() {
                 </select>
             }
           </div>
+          {/* Kombination */}
+          <div className="border-t border-gray-100 pt-3 space-y-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kombination (optional)</p>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="label mb-0">Kombiniert mit</label>
+                <button type="button" onClick={() => setKombiFreitext(!kombiFreitext)} className="text-xs text-blue-600 hover:underline">
+                  {kombiFreitext ? 'Aus Katalog' : 'Freitext'}
+                </button>
+              </div>
+              {kombiFreitext
+                ? <input className="input" placeholder="z.B. Ko-uchi-gari" value={form.kombinations_technik_frei} onChange={set('kombinations_technik_frei')} />
+                : <select className="input" value={form.kombinations_technik_id} onChange={set('kombinations_technik_id')}>
+                    <option value="">-- keine Kombination --</option>
+                    {techniken.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+              }
+            </div>
+            {(form.kombinations_technik_id || form.kombinations_technik_frei) && (
+              <div>
+                <label className="label">Hauptwaffe (Tokui-waza) ist</label>
+                <div className="flex gap-2">
+                  {([
+                    { val: 'erst', label: '1. Technik (Einleitung / Feint)' },
+                    { val: 'zweit', label: '2. Technik (Abschluss / Finish)' },
+                  ] as const).map(({ val, label }) => (
+                    <label key={val} className={`flex-1 p-2 rounded-lg border cursor-pointer text-xs text-center transition-colors ${
+                      form.hauptwaffe_position === val ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200'
+                    }`}>
+                      <input type="radio" name="hauptwaffe_position" value={val}
+                        checked={form.hauptwaffe_position === val}
+                        onChange={set('hauptwaffe_position')} className="hidden" />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="label">Notizen</label>
             <textarea className="input" rows={2} value={form.notizen} onChange={set('notizen')} />
@@ -236,6 +284,23 @@ export default function IKKZPage() {
                         {IKKZ_SITUATION_LABEL[e.situation]}
                       </span>
                     </div>
+                    {/* Kombination */}
+                    {(e.kombinations_technik || e.kombinations_technik_frei) && (() => {
+                      const kombi = e.kombinations_technik?.name ?? e.kombinations_technik_frei ?? ''
+                      const haupt = e.technik?.name ?? e.technik_frei ?? 'Tokui-waza'
+                      const isErst = e.hauptwaffe_position === 'erst'
+                      const isZweit = e.hauptwaffe_position === 'zweit'
+                      return (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
+                          {isErst
+                            ? <><span className="font-medium text-blue-700">{haupt}</span><span>→</span><span>{kombi}</span></>
+                            : isZweit
+                            ? <><span>{kombi}</span><span>→</span><span className="font-medium text-blue-700">{haupt}</span></>
+                            : <><span className="font-medium text-blue-700">{haupt}</span><span className="text-gray-400">⟷</span><span>{kombi}</span></>
+                          }
+                        </div>
+                      )
+                    })()}
                     {e.notizen && <p className="text-xs text-gray-500 mt-1.5 italic">{e.notizen}</p>}
                   </div>
                   {isTrainer() && (

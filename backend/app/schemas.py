@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from .models import (
     UserRolle, Guertel, Geschlecht, GKGeschlecht, Altersklasse, TechnikKategorie,
     VeranstaltungsTyp, KampfRunde, Sieger, Abschluss, EreignisTyp, KaempferFarbe,
-    MedienTyp, ErfolgKategorie, KampflosSeite, IKKZRichtung, IKKZSituation,
+    MedienTyp, ErfolgKategorie, KampflosSeite, IKKZRichtung, IKKZSituation, HauptwaffePosition,
 )
 
 
@@ -402,6 +402,9 @@ class IKKZCreate(BaseModel):
     richtung: IKKZRichtung
     situation: IKKZSituation
     prioritaet: int = 1
+    kombinations_technik_id: Optional[int] = None
+    kombinations_technik_frei: Optional[str] = None
+    hauptwaffe_position: Optional[HauptwaffePosition] = None
     notizen: Optional[str] = None
     datum: Optional[date] = None
 
@@ -412,6 +415,9 @@ class IKKZUpdate(BaseModel):
     richtung: Optional[IKKZRichtung] = None
     situation: Optional[IKKZSituation] = None
     prioritaet: Optional[int] = None
+    kombinations_technik_id: Optional[int] = None
+    kombinations_technik_frei: Optional[str] = None
+    hauptwaffe_position: Optional[HauptwaffePosition] = None
     notizen: Optional[str] = None
 
 
@@ -423,9 +429,13 @@ class IKKZResponse(BaseModel):
     richtung: IKKZRichtung
     situation: IKKZSituation
     prioritaet: int
+    kombinations_technik_id: Optional[int] = None
+    kombinations_technik_frei: Optional[str] = None
+    hauptwaffe_position: Optional[HauptwaffePosition] = None
     notizen: Optional[str] = None
     datum: Optional[date] = None
     technik: Optional[TechnikKurzResponse] = None
+    kombinations_technik: Optional[TechnikKurzResponse] = None
     model_config = {"from_attributes": True}
 
 

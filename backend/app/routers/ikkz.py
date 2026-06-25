@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
-from ..models import User, KampfkonzeptEintrag
+from ..models import User, KampfkonzeptEintrag, Technik
 from ..schemas import IKKZCreate, IKKZUpdate, IKKZResponse
 from ..deps import get_current_user, require_trainer
 
@@ -12,7 +12,8 @@ router = APIRouter(prefix="/api/ikkz", tags=["ikkz"])
 
 def _load(ikkz_id: int, db: Session) -> KampfkonzeptEintrag:
     e = db.query(KampfkonzeptEintrag).options(
-        joinedload(KampfkonzeptEintrag.technik)
+        joinedload(KampfkonzeptEintrag.technik),
+        joinedload(KampfkonzeptEintrag.kombinations_technik),
     ).filter(KampfkonzeptEintrag.id == ikkz_id).first()
     if not e:
         raise HTTPException(status_code=404, detail="IKKZ-Eintrag nicht gefunden")
@@ -25,7 +26,10 @@ def list_ikkz(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    q = db.query(KampfkonzeptEintrag).options(joinedload(KampfkonzeptEintrag.technik))
+    q = db.query(KampfkonzeptEintrag).options(
+        joinedload(KampfkonzeptEintrag.technik),
+        joinedload(KampfkonzeptEintrag.kombinations_technik),
+    )
     if kaempfer_id:
         q = q.filter(KampfkonzeptEintrag.kaempfer_id == kaempfer_id)
     return q.order_by(KampfkonzeptEintrag.prioritaet, KampfkonzeptEintrag.id).all()

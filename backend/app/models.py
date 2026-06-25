@@ -107,6 +107,11 @@ class KaempferFarbe(str, enum.Enum):
     blau = "blau"
 
 
+class HauptwaffePosition(str, enum.Enum):
+    erst = "erst"
+    zweit = "zweit"
+
+
 class IKKZRichtung(str, enum.Enum):
     links = "links"
     rechts = "rechts"
@@ -254,12 +259,16 @@ class KampfkonzeptEintrag(Base):
     richtung: Mapped[IKKZRichtung] = mapped_column(SAEnum(IKKZRichtung), nullable=False)
     situation: Mapped[IKKZSituation] = mapped_column(SAEnum(IKKZSituation), nullable=False)
     prioritaet: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    kombinations_technik_id: Mapped[Optional[int]] = mapped_column(ForeignKey("techniken.id"), nullable=True)
+    kombinations_technik_frei: Mapped[Optional[str]] = mapped_column(String(255))
+    hauptwaffe_position: Mapped[Optional[HauptwaffePosition]] = mapped_column(SAEnum(HauptwaffePosition), nullable=True)
     notizen: Mapped[Optional[str]] = mapped_column(Text)
     erstellt_von: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
     datum: Mapped[Optional[date]] = mapped_column(Date)
 
     kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
-    technik: Mapped[Optional["Technik"]] = relationship("Technik")
+    technik: Mapped[Optional["Technik"]] = relationship("Technik", foreign_keys="[KampfkonzeptEintrag.technik_id]")
+    kombinations_technik: Mapped[Optional["Technik"]] = relationship("Technik", foreign_keys="[KampfkonzeptEintrag.kombinations_technik_id]")
 
 
 class Leistungstest(Base):

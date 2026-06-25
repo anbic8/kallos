@@ -139,6 +139,7 @@ export interface Erfolg {
 
 export type IKKZRichtung = 'links' | 'rechts' | 'beide'
 export type IKKZSituation = 'angriff' | 'konter' | 'aufsetzer' | 'ne_waza_einstieg' | 'sonstiges'
+export type HauptwaffePosition = 'erst' | 'zweit'
 
 export interface IKKZEintrag {
   id: number
@@ -148,9 +149,13 @@ export interface IKKZEintrag {
   richtung: IKKZRichtung
   situation: IKKZSituation
   prioritaet: number
+  kombinations_technik_id?: number
+  kombinations_technik_frei?: string
+  hauptwaffe_position?: HauptwaffePosition
   notizen?: string
   datum?: string
   technik?: { id: number; name: string }
+  kombinations_technik?: { id: number; name: string }
 }
 
 export interface Leistungstest {
