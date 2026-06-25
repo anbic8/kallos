@@ -288,7 +288,6 @@ export default function KampfDetailPage() {
             </p>
           )}
         </div>
-        </div>
 
         {showEreignisForm && (
           <form onSubmit={handleAddEreignis} className="bg-gray-50 rounded-lg p-3 space-y-3 border border-gray-200">
