@@ -14,11 +14,12 @@ depends_on = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE TYPE hauptwaffeposition AS ENUM ('erst', 'zweit')")
     op.add_column("kampfkonzept_eintraege", sa.Column("kombinations_technik_id", sa.Integer(), nullable=True))
     op.add_column("kampfkonzept_eintraege", sa.Column("kombinations_technik_frei", sa.String(255), nullable=True))
     op.add_column("kampfkonzept_eintraege", sa.Column(
         "hauptwaffe_position",
-        sa.Enum("erst", "zweit", name="hauptwaffeposition"),
+        sa.Enum("erst", "zweit", name="hauptwaffeposition", create_type=False),
         nullable=True,
     ))
     op.create_foreign_key(None, "kampfkonzept_eintraege", "techniken", ["kombinations_technik_id"], ["id"])
