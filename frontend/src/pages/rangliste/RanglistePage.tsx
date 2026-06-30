@@ -42,6 +42,12 @@ export default function RanglistePage() {
     return r.siege
   }
 
+  const wertAbsolut = (r: any) => {
+    if (kriterium === 'siegquote') return `${r.siege}/${r.total} Siege`
+    if (kriterium === 'anwesenheit') return `${r.anwesenheit_anwesend}/${r.anwesenheit_total} Termine`
+    return null
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Vereins-Rangliste</h1>
@@ -115,14 +121,20 @@ export default function RanglistePage() {
                       {GUERTEL_LABEL[r.aktueller_guertel as Guertel]}
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">{r.total} Kämpfe</span>
+                  <span className="text-xs text-gray-400">
+                    {kriterium === 'anwesenheit'
+                      ? `${r.anwesenheit_anwesend}/${r.anwesenheit_total} Trainings`
+                      : `${r.total} Kämpfe`}
+                  </span>
                 </div>
               </div>
 
               {/* Wert */}
               <div className="text-right flex-shrink-0">
                 <p className="text-xl font-bold text-blue-700">{wertLabel(r)}</p>
-                <p className="text-xs text-gray-400">{KRITERIEN.find(k => k.key === kriterium)?.label}</p>
+                <p className="text-xs text-gray-400">
+                  {wertAbsolut(r) ?? KRITERIEN.find(k => k.key === kriterium)?.label}
+                </p>
               </div>
             </Link>
           ))}
