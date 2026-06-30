@@ -205,6 +205,55 @@ export interface Gruppe {
   mitglieder_anzahl: number
 }
 
+export type Wochentag = 'montag' | 'dienstag' | 'mittwoch' | 'donnerstag' | 'freitag' | 'samstag' | 'sonntag'
+
+export const WOCHENTAG_LABEL: Record<Wochentag, string> = {
+  montag: 'Montag', dienstag: 'Dienstag', mittwoch: 'Mittwoch', donnerstag: 'Donnerstag',
+  freitag: 'Freitag', samstag: 'Samstag', sonntag: 'Sonntag',
+}
+
+export const WOCHENTAG_ORDER: Wochentag[] = ['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonntag']
+
+export interface Trainingsgruppe {
+  id: number
+  gruppe_id: number
+  wochentag: Wochentag
+  uhrzeit: string
+  gruppe?: { id: number; name: string }
+}
+
+export interface TeilnehmerEintrag {
+  kaempfer_id: number
+  vorname: string
+  nachname: string
+  foto_url?: string
+  anwesend: boolean
+}
+
+export interface TrainingsgruppenQuote {
+  trainingsgruppe_id: number
+  label: string
+  total: number
+  anwesend: number
+  quote: number
+}
+
+export interface AnwesenheitVerlaufEintrag {
+  datum: string
+  anwesend: boolean
+  trainingsgruppe_id: number
+  trainingsgruppe_label: string
+}
+
+export interface KaempferAnwesenheitStatistik {
+  kaempfer_id: number
+  total_termine: number
+  anwesend: number
+  quote: number
+  nach_trainingsgruppe: TrainingsgruppenQuote[]
+  verlauf: AnwesenheitVerlaufEintrag[]
+}
+
 export type KampflosSeite = 'heim' | 'gast'
 
 export interface Einzelkampf {

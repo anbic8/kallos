@@ -149,6 +149,13 @@ export default function KaempferProfilPage() {
             <p className="text-xs text-gray-500">Uchi-komi, Griffkraft</p>
           </Link>
         )}
+        {kannBearbeiten && (
+          <Link to={`/kaempfer/${kaempfer.id}/anwesenheit`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center">
+            <span className="text-3xl">📅</span>
+            <p className="font-semibold text-sm">Anwesenheit</p>
+            <p className="text-xs text-gray-500">Trainingsteilnahme</p>
+          </Link>
+        )}
         {isTrainer() && (
           <Link to={`/kaempfer/${kaempfer.id}/druck`} className="card flex flex-col items-center gap-1 py-4 hover:border-blue-300 transition-colors text-center col-span-2">
             <span className="text-3xl">🖨</span>

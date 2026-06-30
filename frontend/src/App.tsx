@@ -27,6 +27,9 @@ import GuertelPage from './pages/rangliste/GuertelPage'
 import AdminPage from './pages/admin/AdminPage'
 import DruckansichtPage from './pages/druck/DruckansichtPage'
 import GruppenPage from './pages/gruppen/GruppenPage'
+import TrainingsgruppenPage from './pages/training/TrainingsgruppenPage'
+import AnwesenheitPage from './pages/training/AnwesenheitPage'
+import KaempferAnwesenheitPage from './pages/training/KaempferAnwesenheitPage'
 
 export default function App() {
   const { token, setUser } = useAuthStore()
@@ -71,6 +74,9 @@ export default function App() {
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="/kaempfer/:id/druck" element={<DruckansichtPage />} />
                   <Route path="/gruppen" element={<GruppenPage />} />
+                  <Route path="/training" element={<TrainingsgruppenPage />} />
+                  <Route path="/training/:id" element={<AnwesenheitPage />} />
+                  <Route path="/kaempfer/:id/anwesenheit" element={<KaempferAnwesenheitPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

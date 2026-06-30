@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
 from typing import Optional
-from ..models import User, Kaempfer, Verein, Kampf, Erfolg, Sieger, Abschluss
+from ..models import User, Kaempfer, Verein, Kampf, Erfolg, Sieger, Abschluss, TrainingsAnwesenheit
 from ..deps import get_current_user
 
 router = APIRouter(prefix="/api/rangliste", tags=["rangliste"])
@@ -33,12 +33,13 @@ def get_rangliste(
     ).all()
 
     erfolge_alle = db.query(Erfolg).filter(Erfolg.kaempfer_id.in_(kaempfer_ids)).all()
+    anwesenheit_alle = db.query(TrainingsAnwesenheit).filter(TrainingsAnwesenheit.kaempfer_id.in_(kaempfer_ids)).all()
 
     ranking = []
     for k in kaempfer:
         meine_kaempfe = [f for f in kaempfe if f.kaempfer_weiss_id == k.id or f.kaempfer_blau_id == k.id]
         total = len(meine_kaempfe)
-        if total < min_kaempfe:
+        if kriterium != "anwesenheit" and total < min_kaempfe:
             continue
 
         siege = sum(
@@ -60,6 +61,11 @@ def get_rangliste(
         )
         turnier_siege = sum(1 for e in meine_erfolge if e.platz == 1)
 
+        meine_anwesenheit = [a for a in anwesenheit_alle if a.kaempfer_id == k.id]
+        anwesenheit_total = len(meine_anwesenheit)
+        anwesenheit_anwesend = sum(1 for a in meine_anwesenheit if a.anwesend)
+        anwesenheit_quote = round(anwesenheit_anwesend / anwesenheit_total * 100, 1) if anwesenheit_total else 0.0
+
         ranking.append({
             "kaempfer_id": k.id,
             "vorname": k.vorname,
@@ -72,6 +78,9 @@ def get_rangliste(
             "siegquote": siegquote,
             "turnier_siege": turnier_siege,
             "erfolge_punkte": erfolge_punkte,
+            "anwesenheit_total": anwesenheit_total,
+            "anwesenheit_anwesend": anwesenheit_anwesend,
+            "anwesenheit_quote": anwesenheit_quote,
         })
 
     sort_key = {
@@ -79,6 +88,7 @@ def get_rangliste(
         "siegquote": lambda x: (-x["siegquote"], -x["siege"]),
         "erfolge": lambda x: (-x["erfolge_punkte"], -x["turnier_siege"]),
         "turnier": lambda x: (-x["turnier_siege"], -x["erfolge_punkte"]),
+        "anwesenheit": lambda x: (-x["anwesenheit_quote"], -x["anwesenheit_anwesend"]),
     }.get(kriterium, lambda x: (-x["siege"], -x["siegquote"]))
 
     ranking.sort(key=sort_key)

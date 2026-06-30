@@ -452,3 +452,4 @@ Spaetere Korrelation moeglich: hoehe Griffkraft-Werte -> bessere Ippon-Rate?
 | Admin-Passwort | Pflichtfeld ohne Default -- unsicherer Defaultwert "admin123" entfernt |
 | Heimverein | Wird beim ersten Start automatisch per Seed angelegt (Name via HEIMVEREIN_NAME) |
 | Foto-Upload-Limit | 50 MB pro Datei (nginx client_max_body_size + Backend-Pruefung) |
+| Trainingsanwesenheit | trainingsgruppen (Wochentag+Uhrzeit+Gruppe) + trainings_anwesenheit (pro Kaempfer/Datum); Teilnehmerliste = Gruppenmitglieder + historische Teilnehmer |

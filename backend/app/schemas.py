@@ -5,6 +5,7 @@ from .models import (
     UserRolle, Guertel, Geschlecht, GKGeschlecht, Altersklasse, TechnikKategorie,
     VeranstaltungsTyp, KampfRunde, Sieger, Abschluss, EreignisTyp, KaempferFarbe,
     MedienTyp, ErfolgKategorie, KampflosSeite, IKKZRichtung, IKKZSituation, HauptwaffePosition,
+    Wochentag,
 )
 
 
@@ -91,6 +92,71 @@ class GruppeResponse(BaseModel):
     beschreibung: Optional[str] = None
     mitglieder_anzahl: int = 0
     model_config = {"from_attributes": True}
+
+
+# ---------- Trainingsgruppe & Anwesenheit ----------
+
+class TrainingsgruppeCreate(BaseModel):
+    gruppe_id: int
+    wochentag: Wochentag
+    uhrzeit: time
+
+
+class TrainingsgruppeUpdate(BaseModel):
+    gruppe_id: Optional[int] = None
+    wochentag: Optional[Wochentag] = None
+    uhrzeit: Optional[time] = None
+
+
+class TrainingsgruppeResponse(BaseModel):
+    id: int
+    gruppe_id: int
+    wochentag: Wochentag
+    uhrzeit: time
+    gruppe: Optional[GruppeKurzResponse] = None
+    model_config = {"from_attributes": True}
+
+
+class TeilnehmerEintrag(BaseModel):
+    kaempfer_id: int
+    vorname: str
+    nachname: str
+    foto_url: Optional[str] = None
+    anwesend: bool
+
+
+class AnwesenheitSaveEintrag(BaseModel):
+    kaempfer_id: int
+    anwesend: bool
+
+
+class AnwesenheitSaveRequest(BaseModel):
+    datum: date
+    eintraege: list[AnwesenheitSaveEintrag]
+
+
+class TrainingsgruppenQuote(BaseModel):
+    trainingsgruppe_id: int
+    label: str
+    total: int
+    anwesend: int
+    quote: float
+
+
+class AnwesenheitVerlaufEintrag(BaseModel):
+    datum: date
+    anwesend: bool
+    trainingsgruppe_id: int
+    trainingsgruppe_label: str
+
+
+class KaempferAnwesenheitStatistik(BaseModel):
+    kaempfer_id: int
+    total_termine: int
+    anwesend: int
+    quote: float
+    nach_trainingsgruppe: list[TrainingsgruppenQuote]
+    verlauf: list[AnwesenheitVerlaufEintrag]
 
 
 # ---------- Kaempfer ----------

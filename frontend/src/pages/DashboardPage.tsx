@@ -88,6 +88,10 @@ export default function DashboardPage() {
             <span className="text-2xl">👥</span>
             <span className="font-medium">Gruppen</span>
           </Link>
+          <Link to="/training" className="card flex flex-col items-center gap-1.5 py-4 hover:border-blue-300 transition-colors text-center text-sm">
+            <span className="text-2xl">📅</span>
+            <span className="font-medium">Training</span>
+          </Link>
           {isAdmin() && (
             <Link to="/admin" className="card flex flex-col items-center gap-1.5 py-4 hover:border-red-200 border-red-100 transition-colors text-center text-sm">
               <span className="text-2xl">⚙️</span>

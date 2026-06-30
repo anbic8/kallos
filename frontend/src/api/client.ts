@@ -3,6 +3,7 @@ import type {
   Kaempfer, TokenResponse, User, Verein, Gewichtsklasse, Technik,
   Veranstaltung, Kampf, KampfEreignis, KaempferStatistik, KampfMedien, Erfolg,
   Mannschaftskampf, Einzelkampf, LigaTabelle, IKKZEintrag, Leistungstest,
+  Trainingsgruppe, TeilnehmerEintrag, KaempferAnwesenheitStatistik,
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -227,6 +228,46 @@ export const createLeistungstest = async (kaempferId: number, payload: object): 
 
 export const deleteLeistungstest = async (id: number): Promise<void> => {
   await api.delete(`/leistungstests/${id}`)
+}
+
+// ---------- Trainingsgruppen & Anwesenheit ----------
+
+export const fetchTrainingsgruppen = async (): Promise<Trainingsgruppe[]> => {
+  const { data } = await api.get<Trainingsgruppe[]>('/trainingsgruppen')
+  return data
+}
+
+export const fetchTrainingsgruppeById = async (id: number): Promise<Trainingsgruppe> => {
+  const { data } = await api.get<Trainingsgruppe>(`/trainingsgruppen/${id}`)
+  return data
+}
+
+export const createTrainingsgruppe = async (payload: { gruppe_id: number; wochentag: string; uhrzeit: string }): Promise<Trainingsgruppe> => {
+  const { data } = await api.post<Trainingsgruppe>('/trainingsgruppen', payload)
+  return data
+}
+
+export const updateTrainingsgruppe = async (id: number, payload: Partial<{ gruppe_id: number; wochentag: string; uhrzeit: string }>): Promise<Trainingsgruppe> => {
+  const { data } = await api.patch<Trainingsgruppe>(`/trainingsgruppen/${id}`, payload)
+  return data
+}
+
+export const deleteTrainingsgruppe = async (id: number): Promise<void> => {
+  await api.delete(`/trainingsgruppen/${id}`)
+}
+
+export const fetchTeilnehmer = async (tgId: number, datum: string): Promise<TeilnehmerEintrag[]> => {
+  const { data } = await api.get<TeilnehmerEintrag[]>(`/trainingsgruppen/${tgId}/teilnehmer`, { params: { datum } })
+  return data
+}
+
+export const saveAnwesenheit = async (tgId: number, datum: string, eintraege: { kaempfer_id: number; anwesend: boolean }[]): Promise<void> => {
+  await api.post(`/trainingsgruppen/${tgId}/anwesenheit`, { datum, eintraege })
+}
+
+export const fetchKaempferAnwesenheit = async (kaempferId: number): Promise<KaempferAnwesenheitStatistik> => {
+  const { data } = await api.get<KaempferAnwesenheitStatistik>(`/kaempfer/${kaempferId}/anwesenheit-statistik`)
+  return data
 }
 
 // ---------- Mannschaft ----------

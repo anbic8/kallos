@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime, date, time
 from typing import Optional
-from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum, Boolean, Date, Time, Table, Column
+from sqlalchemy import String, Integer, Float, DateTime, Text, ForeignKey, Enum as SAEnum, Boolean, Date, Time, Table, Column, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -120,6 +120,16 @@ class HauptwaffePosition(str, enum.Enum):
     zweit = "zweit"
 
 
+class Wochentag(str, enum.Enum):
+    montag = "montag"
+    dienstag = "dienstag"
+    mittwoch = "mittwoch"
+    donnerstag = "donnerstag"
+    freitag = "freitag"
+    samstag = "samstag"
+    sonntag = "sonntag"
+
+
 class IKKZRichtung(str, enum.Enum):
     links = "links"
     rechts = "rechts"
@@ -185,6 +195,34 @@ class Gruppe(Base):
     mitglieder: Mapped[list["Kaempfer"]] = relationship(
         "Kaempfer", secondary="kaempfer_gruppen", back_populates="gruppen"
     )
+
+
+class Trainingsgruppe(Base):
+    __tablename__ = "trainingsgruppen"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    gruppe_id: Mapped[int] = mapped_column(ForeignKey("gruppen.id"), nullable=False)
+    wochentag: Mapped[Wochentag] = mapped_column(SAEnum(Wochentag), nullable=False)
+    uhrzeit: Mapped[time] = mapped_column(Time, nullable=False)
+
+    gruppe: Mapped["Gruppe"] = relationship("Gruppe")
+    anwesenheiten: Mapped[list["TrainingsAnwesenheit"]] = relationship(
+        "TrainingsAnwesenheit", cascade="all, delete-orphan"
+    )
+
+
+class TrainingsAnwesenheit(Base):
+    __tablename__ = "trainings_anwesenheit"
+    __table_args__ = (UniqueConstraint("trainingsgruppe_id", "kaempfer_id", "datum", name="uq_anwesenheit"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    trainingsgruppe_id: Mapped[int] = mapped_column(ForeignKey("trainingsgruppen.id"), nullable=False)
+    kaempfer_id: Mapped[int] = mapped_column(ForeignKey("kaempfer.id"), nullable=False)
+    datum: Mapped[date] = mapped_column(Date, nullable=False)
+    anwesend: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    trainingsgruppe: Mapped["Trainingsgruppe"] = relationship("Trainingsgruppe", overlaps="anwesenheiten")
+    kaempfer: Mapped["Kaempfer"] = relationship("Kaempfer")
 
 
 class Kaempfer(Base):

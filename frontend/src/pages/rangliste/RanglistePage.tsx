@@ -9,6 +9,7 @@ const KRITERIEN = [
   { key: 'ippons', label: 'Ippons' },
   { key: 'turnier', label: 'Turniersiege' },
   { key: 'erfolge', label: 'Erfolge-Punkte' },
+  { key: 'anwesenheit', label: 'Anwesenheit %' },
 ]
 
 const RANG_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
@@ -37,6 +38,7 @@ export default function RanglistePage() {
     if (kriterium === 'ippons') return r.ippons
     if (kriterium === 'turnier') return `${r.turnier_siege} 🏆`
     if (kriterium === 'erfolge') return `${r.erfolge_punkte} Pkt`
+    if (kriterium === 'anwesenheit') return `${r.anwesenheit_quote} %`
     return r.siege
   }
 
