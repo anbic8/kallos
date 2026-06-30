@@ -10,14 +10,19 @@ const KRITERIEN = [
   { key: 'turnier', label: 'Turniersiege' },
   { key: 'erfolge', label: 'Erfolge-Punkte' },
   { key: 'anwesenheit', label: 'Anwesenheit %' },
+  { key: 'anwesenheit_absolut', label: 'Anwesenheit (absolut)' },
 ]
 
 const RANG_MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
+
+const aktuellesJahr = new Date().getFullYear()
+const JAHRE = [aktuellesJahr, aktuellesJahr - 1, aktuellesJahr - 2, aktuellesJahr - 3, aktuellesJahr - 4]
 
 export default function RanglistePage() {
   const [kriterium, setKriterium] = useState('siege')
   const [minKaempfe, setMinKaempfe] = useState(0)
   const [filterGruppe, setFilterGruppe] = useState<number | undefined>()
+  const [filterJahr, setFilterJahr] = useState<number | undefined>()
   const [gruppen, setGruppen] = useState<Gruppe[]>([])
   const [rangliste, setRangliste] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,12 +31,14 @@ export default function RanglistePage() {
 
   const laden = () => {
     setLoading(true)
-    fetchRangliste(kriterium, minKaempfe, filterGruppe)
+    fetchRangliste(kriterium, minKaempfe, filterGruppe, filterJahr)
       .then(setRangliste)
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { laden() }, [kriterium, minKaempfe, filterGruppe])
+  useEffect(() => { laden() }, [kriterium, minKaempfe, filterGruppe, filterJahr])
+
+  const istAbsolut = kriterium === 'anwesenheit_absolut'
 
   const wertLabel = (r: any) => {
     if (kriterium === 'siegquote') return `${r.siegquote} %`
@@ -39,12 +46,14 @@ export default function RanglistePage() {
     if (kriterium === 'turnier') return `${r.turnier_siege} 🏆`
     if (kriterium === 'erfolge') return `${r.erfolge_punkte} Pkt`
     if (kriterium === 'anwesenheit') return `${r.anwesenheit_quote} %`
+    if (istAbsolut) return r.anwesenheit_anwesend
     return r.siege
   }
 
   const wertAbsolut = (r: any) => {
     if (kriterium === 'siegquote') return `${r.siege}/${r.total} Siege`
     if (kriterium === 'anwesenheit') return `${r.anwesenheit_anwesend}/${r.anwesenheit_total} Termine`
+    if (istAbsolut) return `${r.anwesenheit_quote} % Quote`
     return null
   }
 
@@ -69,6 +78,21 @@ export default function RanglistePage() {
         </select>
       </div>
 
+      {/* Jahr-Filter */}
+      <div className="flex gap-1.5 flex-wrap">
+        <button onClick={() => setFilterJahr(undefined)}
+          className={`text-xs px-3 py-1 rounded-full border ${!filterJahr ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+          Alle Jahre
+        </button>
+        {JAHRE.map((j) => (
+          <button key={j} onClick={() => setFilterJahr(filterJahr === j ? undefined : j)}
+            className={`text-xs px-3 py-1 rounded-full border ${filterJahr === j ? 'bg-blue-700 text-white border-blue-700' : 'border-gray-300 text-gray-600'}`}>
+            {j}
+          </button>
+        ))}
+      </div>
+
+      {/* Gruppen-Filter */}
       {gruppen.length > 0 && (
         <div className="flex gap-1.5 flex-wrap">
           <button onClick={() => setFilterGruppe(undefined)}
@@ -122,7 +146,7 @@ export default function RanglistePage() {
                     </span>
                   )}
                   <span className="text-xs text-gray-400">
-                    {kriterium === 'anwesenheit'
+                    {kriterium === 'anwesenheit' || istAbsolut
                       ? `${r.anwesenheit_anwesend}/${r.anwesenheit_total} Trainings`
                       : `${r.total} Kämpfe`}
                   </span>

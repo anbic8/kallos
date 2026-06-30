@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import extract
 from sqlalchemy.orm import Session
 from ..database import get_db
 from typing import Optional
-from ..models import User, Kaempfer, Verein, Kampf, Erfolg, Sieger, Abschluss, TrainingsAnwesenheit
+from ..models import User, Kaempfer, Verein, Kampf, Erfolg, Sieger, Abschluss, TrainingsAnwesenheit, Gruppe, Veranstaltung
 from ..deps import get_current_user
 
 router = APIRouter(prefix="/api/rangliste", tags=["rangliste"])
@@ -13,10 +14,10 @@ def get_rangliste(
     kriterium: str = "siege",
     min_kaempfe: int = 0,
     gruppe_id: Optional[int] = None,
+    jahr: Optional[int] = None,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    from ..models import Gruppe
     heimverein = db.query(Verein).order_by(Verein.id).first()
     if not heimverein:
         return []
@@ -27,19 +28,33 @@ def get_rangliste(
     kaempfer = q.all()
     kaempfer_ids = {k.id for k in kaempfer}
 
-    kaempfe = db.query(Kampf).filter(
+    kaempfe_q = db.query(Kampf).filter(
         (Kampf.kaempfer_weiss_id.in_(kaempfer_ids)) |
         (Kampf.kaempfer_blau_id.in_(kaempfer_ids))
-    ).all()
+    )
+    if jahr:
+        kaempfe_q = kaempfe_q.join(Veranstaltung, Kampf.veranstaltung_id == Veranstaltung.id).filter(
+            extract("year", Veranstaltung.datum) == jahr
+        )
+    kaempfe = kaempfe_q.all()
 
-    erfolge_alle = db.query(Erfolg).filter(Erfolg.kaempfer_id.in_(kaempfer_ids)).all()
-    anwesenheit_alle = db.query(TrainingsAnwesenheit).filter(TrainingsAnwesenheit.kaempfer_id.in_(kaempfer_ids)).all()
+    erfolge_q = db.query(Erfolg).filter(Erfolg.kaempfer_id.in_(kaempfer_ids))
+    if jahr:
+        erfolge_q = erfolge_q.join(Veranstaltung, Erfolg.veranstaltung_id == Veranstaltung.id).filter(
+            extract("year", Veranstaltung.datum) == jahr
+        )
+    erfolge_alle = erfolge_q.all()
+
+    anwesenheit_q = db.query(TrainingsAnwesenheit).filter(TrainingsAnwesenheit.kaempfer_id.in_(kaempfer_ids))
+    if jahr:
+        anwesenheit_q = anwesenheit_q.filter(extract("year", TrainingsAnwesenheit.datum) == jahr)
+    anwesenheit_alle = anwesenheit_q.all()
 
     ranking = []
     for k in kaempfer:
         meine_kaempfe = [f for f in kaempfe if f.kaempfer_weiss_id == k.id or f.kaempfer_blau_id == k.id]
         total = len(meine_kaempfe)
-        if kriterium != "anwesenheit" and total < min_kaempfe:
+        if kriterium not in ("anwesenheit", "anwesenheit_absolut") and total < min_kaempfe:
             continue
 
         siege = sum(
@@ -89,6 +104,7 @@ def get_rangliste(
         "erfolge": lambda x: (-x["erfolge_punkte"], -x["turnier_siege"]),
         "turnier": lambda x: (-x["turnier_siege"], -x["erfolge_punkte"]),
         "anwesenheit": lambda x: (-x["anwesenheit_quote"], -x["anwesenheit_anwesend"]),
+        "anwesenheit_absolut": lambda x: (-x["anwesenheit_anwesend"], -x["anwesenheit_quote"]),
     }.get(kriterium, lambda x: (-x["siege"], -x["siegquote"]))
 
     ranking.sort(key=sort_key)

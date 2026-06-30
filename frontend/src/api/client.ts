@@ -315,8 +315,14 @@ export const fetchKampftage = async (ligaId: number): Promise<Veranstaltung[]> =
   return data
 }
 
-export const fetchRangliste = async (kriterium = 'siege', minKaempfe = 0, gruppeId?: number): Promise<any[]> => {
-  const { data } = await api.get('/rangliste', { params: { kriterium, min_kaempfe: minKaempfe, ...(gruppeId ? { gruppe_id: gruppeId } : {}) } })
+export const fetchRangliste = async (kriterium = 'siege', minKaempfe = 0, gruppeId?: number, jahr?: number): Promise<any[]> => {
+  const { data } = await api.get('/rangliste', {
+    params: {
+      kriterium, min_kaempfe: minKaempfe,
+      ...(gruppeId ? { gruppe_id: gruppeId } : {}),
+      ...(jahr ? { jahr } : {}),
+    }
+  })
   return data
 }
 
